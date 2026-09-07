@@ -1,9 +1,62 @@
 "use client";
 
-import { ChevronDown, Star } from "lucide-react";
+import { useState, useEffect, useRef, useCallback } from "react";
+import { TiktokIcon, InstagramIcon } from "./SocialIcons";
+import { WA_ORDER_LINK } from "@/lib/constants";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+
+const heroSlides = [
+  {
+    image: "/images/ATV-KALIURANG-1.jpeg",
+    subtitle: "Selamat Datang Di OJE",
+    title: "ATV KALIURANG",
+    description:
+      "Jelajahi Hutan, Sungai menggunakan ATV Kaliurang bersama keluarga, teman, atau orang terkasih Anda.",
+  },
+  {
+    image: "/images/ATV-KALIURANG-2.jpeg",
+    subtitle: "Petualangan Seru & Menantang",
+    title: "TREK HUTAN & AIR",
+    description:
+      "Sensasi memacu adrenalin melintasi sungai berbatu dan jalur offroad alami lereng Gunung Merapi.",
+  },
+  {
+    image: "/images/ATV-KALIURANG-5.jpeg",
+    subtitle: "Pengalaman Tak Terlupakan",
+    title: "WISATA MERAPI",
+    description:
+      "Abadikan momen petualangan terhebat Anda dengan fasilitas lengkap, aman, dan pemandu berpengalaman.",
+  },
+];
 
 export default function HeroSection() {
-  const handleScroll = (href: string) => {
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [isHovered, setIsHovered] = useState(false);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const nextSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
+  }, []);
+
+  const prevSlide = useCallback(() => {
+    setCurrentSlide((prev) => (prev - 1 + heroSlides.length) % heroSlides.length);
+  }, []);
+
+  const goToSlide = (index: number) => {
+    setCurrentSlide(index);
+  };
+
+  useEffect(() => {
+    if (isHovered) return;
+    timerRef.current = setInterval(() => {
+      nextSlide();
+    }, 6000);
+    return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
+    };
+  }, [nextSlide, isHovered]);
+
+  const scrollTo = (href: string) => {
     const el = document.querySelector(href);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
@@ -11,119 +64,165 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-screen flex flex-col items-center justify-center overflow-hidden"
+      className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden select-none"
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Background gradient layers */}
-      <div className="absolute inset-0 bg-gray-950" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_left,rgba(245,158,11,0.15)_0%,transparent_60%)]" />
-      <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_bottom_right,rgba(34,197,94,0.08)_0%,transparent_60%)]" />
-
-      {/* Grid pattern overlay */}
-      <div
-        className="absolute inset-0 opacity-5"
-        style={{
-          backgroundImage: `linear-gradient(rgba(245,158,11,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(245,158,11,0.5) 1px, transparent 1px)`,
-          backgroundSize: "60px 60px",
-        }}
-      />
-
-      {/* Decorative blobs */}
-      <div className="absolute top-20 -left-32 w-72 h-72 bg-amber-500/10 rounded-full blur-3xl" />
-      <div className="absolute bottom-20 -right-32 w-96 h-96 bg-green-500/8 rounded-full blur-3xl" />
-
-      {/* Content */}
-      <div className="relative z-10 text-center px-5 max-w-4xl mx-auto">
-        {/* Badge */}
-        <div className="inline-flex items-center gap-2 bg-amber-500/15 border border-amber-500/30 rounded-full px-4 py-1.5 mb-6">
-          <div className="flex gap-0.5">
-            {[...Array(5)].map((_, i) => (
-              <Star key={i} className="w-3 h-3 text-amber-400 fill-amber-400" />
-            ))}
-          </div>
-          <span className="text-amber-300 text-xs font-semibold tracking-wider uppercase">
-            #1 ATV Tour di Kaliurang
-          </span>
-        </div>
-
-        {/* Headline */}
-        <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black text-white leading-[1.1] mb-5">
-          Tour ATV{" "}
-          <span className="relative">
-            <span className="text-amber-400">Kaliurang</span>
-            <svg
-              className="absolute -bottom-1 left-0 w-full"
-              viewBox="0 0 300 8"
-              fill="none"
-              xmlns="http://www.w3.org/2000/svg"
+      {/* Background Image Slideshow with Silky Smooth Sliding Effect */}
+      <div className="absolute inset-0 overflow-hidden">
+        {heroSlides.map((slide, index) => {
+          const isActive = index === currentSlide;
+          return (
+            <div
+              key={slide.image}
+              className={`absolute inset-0 transition-all duration-1000 ease-out ${
+                isActive
+                  ? "opacity-100 scale-100 translate-x-0 z-10"
+                  : index < currentSlide
+                  ? "opacity-0 scale-105 -translate-x-12 z-0"
+                  : "opacity-0 scale-105 translate-x-12 z-0"
+              }`}
             >
-              <path
-                d="M1 5.5C50 2 150 1 299 5.5"
-                stroke="#F59E0B"
-                strokeWidth="3"
-                strokeLinecap="round"
+              <img
+                src={slide.image}
+                alt={slide.title}
+                className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
+                  isActive ? "scale-105" : "scale-100"
+                }`}
               />
-            </svg>
-          </span>
-          <br />
-          <span className="text-white/90">Harga Terjangkau</span>
-          <br />
-          <span className="text-amber-400">&amp; Kualitas Terbaik</span>
-        </h1>
+            </div>
+          );
+        })}
+      </div>
 
-        {/* Subtitle */}
-        <p className="text-gray-400 text-base sm:text-lg md:text-xl max-w-2xl mx-auto mb-8 leading-relaxed">
-          Rasakan sensasi memacu ATV di jalur offroad berdebu, hutan hijau, dan
-          sungai jernih Kaliurang. Pemandu berpengalaman, perlengkapan lengkap,
-          foto &amp; video gratis.
+      {/* Dark gradient overlay for contrast & readability */}
+      <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/45 to-black/75 z-10" />
+
+      {/* Decorative double triangle top-left */}
+      <div className="absolute top-20 sm:top-36 left-4 sm:left-24 z-20 pointer-events-none hidden sm:block animate-float-triangle">
+        <svg width="65" height="60" viewBox="0 0 65 60" fill="none" xmlns="http://www.w3.org/2000/svg" className="drop-shadow-lg">
+          <polygon points="25,5 48,45 2,45" fill="#f6a440" />
+          <polygon points="35,15 62,55 8,55" stroke="#ffffff" strokeWidth="2.5" fill="none" opacity="0.85" />
+        </svg>
+      </div>
+
+      {/* Left Frosted Glass Floating Social Icons (TikTok & Instagram) */}
+      <div className="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-3 sm:gap-4">
+        <a
+          href="https://www.tiktok.com/@oje_atvkaliurang"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="TikTok OJE ATV Kaliurang"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/30 hover:bg-black hover:border-black hover:shadow-[0_0_20px_rgba(255,0,80,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-1 group"
+        >
+          <TiktokIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+        </a>
+
+        <a
+          href="https://www.instagram.com/oje_atvkaliurang/"
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label="Instagram OJE ATV Kaliurang"
+          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/30 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:border-transparent hover:shadow-[0_0_20px_rgba(225,48,108,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-2 group"
+        >
+          <InstagramIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+        </a>
+      </div>
+
+      {/* Prev & Next Slide Buttons (Desktop & Tablet) */}
+      <button
+        onClick={prevSlide}
+        aria-label="Slide Sebelumnya"
+        className="absolute left-4 sm:left-20 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-black/30 hover:bg-black/70 active:scale-90 border border-white/20 text-white backdrop-blur-md hidden md:flex items-center justify-center transition-all duration-300 shadow-xl group hover:border-[#f6a440]"
+      >
+        <ChevronLeft className="w-6 h-6 text-white group-hover:-translate-x-0.5 transition-transform" />
+      </button>
+
+      <button
+        onClick={nextSlide}
+        aria-label="Slide Selanjutnya"
+        className="absolute right-4 sm:right-10 top-1/2 -translate-y-1/2 z-30 w-11 h-11 sm:w-13 sm:h-13 rounded-full bg-black/30 hover:bg-black/70 active:scale-90 border border-white/20 text-white backdrop-blur-md hidden md:flex items-center justify-center transition-all duration-300 shadow-xl group hover:border-[#f6a440]"
+      >
+        <ChevronRight className="w-6 h-6 text-white group-hover:translate-x-0.5 transition-transform" />
+      </button>
+
+      {/* Main Hero Center Content with Slide Entrance Effect */}
+      <div className="relative z-20 text-center px-5 sm:px-6 max-w-4xl mx-auto pt-24 sm:pt-32 pb-24">
+        {/* Subtitle text */}
+        <p
+          key={`sub-${currentSlide}`}
+          className="text-amber-400 sm:text-amber-400 font-extrabold text-xs sm:text-base md:text-lg tracking-[0.25em] uppercase mb-2 sm:mb-3 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] animate-fade-up"
+        >
+          {heroSlides[currentSlide].subtitle}
         </p>
 
-        {/* CTA Buttons */}
-        <div className="flex flex-col sm:flex-row gap-3 justify-center">
-          <button
-            onClick={() => handleScroll("#booking")}
-            className="group relative inline-flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-400 text-gray-900 font-black text-base sm:text-lg px-8 py-4 rounded-xl shadow-xl shadow-amber-500/30 transition-all duration-300 hover:scale-105 active:scale-95"
+        {/* Big H1 Headline */}
+        <h1
+          key={`title-${currentSlide}`}
+          className="text-4xl sm:text-6xl md:text-7xl lg:text-9xl font-black text-white uppercase tracking-tight leading-[1.05] sm:leading-none mb-4 sm:mb-6 drop-shadow-[0_4px_16px_rgba(0,0,0,0.9)] animate-fade-up"
+          style={{ animationDuration: "0.8s" }}
+        >
+          {heroSlides[currentSlide].title}
+        </h1>
+
+        {/* Description paragraph */}
+        <p
+          key={`desc-${currentSlide}`}
+          className="text-white/95 text-xs sm:text-base md:text-xl max-w-2xl mx-auto mb-8 sm:mb-10 leading-relaxed font-semibold drop-shadow-[0_2px_6px_rgba(0,0,0,0.8)] animate-fade-up"
+          style={{ animationDuration: "1s" }}
+        >
+          {heroSlides[currentSlide].description}
+        </p>
+
+        {/* Action Button: PROMO */}
+        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+          <a
+            href={WA_ORDER_LINK}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 border-2 border-white/90 bg-black/40 hover:bg-white hover:text-black active:bg-white active:text-black text-white font-black text-base sm:text-lg px-8 sm:px-10 py-3.5 sm:py-4 rounded-full backdrop-blur-sm shadow-2xl transition-all duration-300 hover:scale-105 active:scale-95 group animate-float"
           >
-            🏍️ Pesan Sekarang
-            <span className="group-hover:translate-x-1 transition-transform duration-200">→</span>
-          </button>
+            <span>PROMO</span>
+            <svg
+              className="w-5 h-5 group-hover:translate-x-1.5 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2.5}
+                d="M14 5l7 7m0 0l-7 7m7-7H3"
+              />
+            </svg>
+          </a>
+
           <button
-            onClick={() => handleScroll("#harga")}
-            className="inline-flex items-center justify-center gap-2 border-2 border-white/20 hover:border-amber-500/50 text-white font-bold text-base sm:text-lg px-8 py-4 rounded-xl transition-all duration-300 hover:bg-amber-500/10"
+            onClick={() => scrollTo("#harga")}
+            className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-[#b51b41] hover:bg-[#8b1626] active:scale-95 text-white font-bold text-sm sm:text-base px-6 sm:px-8 py-3.5 sm:py-4 rounded-full shadow-lg transition-all"
           >
             Lihat Paket Harga
           </button>
         </div>
-
-        {/* Stats row */}
-        <div className="mt-12 grid grid-cols-3 gap-4 max-w-sm sm:max-w-md mx-auto">
-          {[
-            { value: "500+", label: "Peserta" },
-            { value: "6", label: "Trek Seru" },
-            { value: "5⭐", label: "Rating" },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="bg-white/5 border border-white/10 rounded-xl p-3 backdrop-blur-sm"
-            >
-              <p className="text-amber-400 font-black text-xl sm:text-2xl">
-                {stat.value}
-              </p>
-              <p className="text-gray-400 text-xs sm:text-sm font-medium">
-                {stat.label}
-              </p>
-            </div>
-          ))}
-        </div>
       </div>
 
-      {/* Scroll indicator */}
-      <button
-        onClick={() => handleScroll("#harga")}
-        className="absolute bottom-8 left-1/2 -translate-x-1/2 text-gray-500 hover:text-amber-400 transition-colors animate-bounce"
-        aria-label="Scroll down"
-      >
-        <ChevronDown className="w-7 h-7" />
-      </button>
+      {/* Slide Indicators / Dots (Bottom Center) */}
+      <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 sm:gap-3 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/15">
+        {heroSlides.map((_, i) => (
+          <button
+            key={i}
+            onClick={() => goToSlide(i)}
+            aria-label={`Pilih slide ${i + 1}`}
+            className={`transition-all duration-500 rounded-full ${
+              i === currentSlide
+                ? "w-8 sm:w-10 h-2 sm:h-2.5 bg-[#f6a440] shadow-[0_0_12px_rgba(246,164,64,0.8)]"
+                : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/50 hover:bg-white/90"
+            }`}
+          />
+        ))}
+      </div>
     </section>
   );
 }
+

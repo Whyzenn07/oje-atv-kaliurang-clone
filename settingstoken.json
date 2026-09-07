@@ -1,0 +1,52 @@
+{
+  "name": "O.J.E – Atv Kaliurang Merapi",
+  "source": "https://ojeatvkaliurang.com/",
+  "tokens": {
+    "colors": {
+      "primary": "#1C1C1C",
+      "secondary": "#FFFFFF",
+      "text": "#6D6C6C",
+      "accent": "#F6A440",
+      "crimson": "#B51B41",
+      "crimsonDark": "#8b1626",
+      "amber": "#F59E0B",
+      "darkBg": "#2D2D2D",
+      "sectionBg": "#F5F5F5",
+      "border": "#EBEBEB"
+    },
+    "typography": {
+      "fontFamily": "'Manrope', 'Montserrat', 'Inter', sans-serif",
+      "headingWeight": "800",
+      "bodyWeight": "500",
+      "scale": {
+        "hero": "clamp(2.5rem, 6vw, 5.5rem)",
+        "h2": "clamp(1.8rem, 3.5vw, 3rem)",
+        "h3": "clamp(1.2rem, 2vw, 1.75rem)",
+        "body": "1rem",
+        "small": "0.875rem"
+      }
+    },
+    "spacing": {
+      "container": "1280px",
+      "sectionPaddingY": "4rem",
+      "gridGap": "1.5rem"
+    },
+    "borderRadius": {
+      "badge": "9999px",
+      "button": "30px",
+      "card": "16px"
+    },
+    "shadows": {
+      "card": "0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)",
+      "badge": "0 20px 25px -5px rgba(0, 0, 0, 0.1)"
+    }
+  },
+  "contact": {
+    "phone": "081226983990",
+    "whatsapp": "6281226983990",
+    "address": "Kaliurang Timur, RT.05/RW15, Kaliurang, Hargobinangun, Kec. Pakem, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55582",
+    "mapUrl": "https://maps.app.goo.gl/q4Kcr7RGfrGbpnJR7",
+    "tiktok": "https://www.tiktok.com/@oje_atvkaliurang",
+    "instagram": "https://www.instagram.com/oje_atvkaliurang/"
+  }
+}

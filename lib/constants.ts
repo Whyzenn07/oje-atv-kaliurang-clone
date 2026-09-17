@@ -1,17 +1,21 @@
 // ============================================================
 // KONTAK & KONFIGURASI BISNIS — OJE ATV KALIURANG
-// Ubah data di sini untuk update semua tautan WA & telpon
+// ⚙️  CARA GANTI NOMOR:
+//   1. Buat file .env.local di root project
+//   2. Tambahkan: NEXT_PUBLIC_WA_NUMBER=628XXXXXXXXXX
+//   3. Di Vercel/Netlify: set Environment Variable yang sama
+//   4. Jangan edit hardcode di sini jika sudah pakai env var
 // ============================================================
 
 export const CONTACT = {
   /** Nomor WhatsApp penerima booking (format internasional, tanpa +) */
-  WA_NUMBER: "6281226983990",
+  WA_NUMBER: process.env.NEXT_PUBLIC_WA_NUMBER || "6281226983990",
 
   /** Nomor telepon tampilan di website */
-  PHONE_DISPLAY: "081226983990",
+  PHONE_DISPLAY: process.env.NEXT_PUBLIC_PHONE_DISPLAY || "081226983990",
 
   /** Nomor untuk href tel: */
-  PHONE_HREF: "081226983990",
+  PHONE_HREF: process.env.NEXT_PUBLIC_PHONE_HREF || "081226983990",
 
   /** Pesan default WA (dari tombol hero/profil/harga) */
   WA_DEFAULT_MSG: encodeURIComponent(

@@ -41,6 +41,8 @@ export default function TestimonialSection() {
   const [isPaused, setIsPaused] = useState(false);
   const [itemsPerView, setItemsPerView] = useState(3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   // Responsive items per view
   useEffect(() => {
@@ -78,6 +80,33 @@ export default function TestimonialSection() {
     };
   }, [nextSlide, isPaused]);
 
+  // Touch swipe handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+    setIsPaused(true);
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    const minSwipe = 50;
+
+    // Only trigger if horizontal swipe is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipe) {
+      if (deltaX > 0) prevSlide();
+      else nextSlide();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+
+    // Resume auto-play after a short delay
+    setTimeout(() => setIsPaused(false), 3000);
+  };
+
   return (
     <section className="bg-[#f5f5f5] py-20 sm:py-28 px-4 sm:px-6 overflow-hidden select-none">
       <div className="max-w-6xl mx-auto">
@@ -97,6 +126,8 @@ export default function TestimonialSection() {
           className="relative overflow-hidden"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           {/* Smooth Sliding Track */}
           <div
@@ -156,6 +187,11 @@ export default function TestimonialSection() {
               </div>
             ))}
           </div>
+
+          {/* Mobile swipe hint */}
+          <p className="text-center text-gray-400 text-xs mt-4 sm:hidden">
+            ← Geser untuk lihat review lainnya →
+          </p>
         </div>
 
         {/* Carousel Navigation Controls (Arrows + Dots) */}
@@ -196,4 +232,3 @@ export default function TestimonialSection() {
     </section>
   );
 }
-

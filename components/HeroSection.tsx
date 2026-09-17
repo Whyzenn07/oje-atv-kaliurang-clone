@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { TiktokIcon, InstagramIcon } from "./SocialIcons";
 import { WA_ORDER_LINK } from "@/lib/constants";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -33,6 +34,8 @@ export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
   const nextSlide = useCallback(() => {
     setCurrentSlide((prev) => (prev + 1) % heroSlides.length);
@@ -61,12 +64,36 @@ export default function HeroSection() {
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
+  // Mobile swipe handlers
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    const minSwipe = 60;
+
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipe) {
+      if (deltaX > 0) prevSlide();
+      else nextSlide();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
+  };
+
   return (
     <section
       id="hero"
       className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden select-none"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
+      onTouchStart={onTouchStart}
+      onTouchEnd={onTouchEnd}
     >
       {/* Background Image Slideshow with Silky Smooth Sliding Effect */}
       <div className="absolute inset-0 overflow-hidden">
@@ -83,12 +110,16 @@ export default function HeroSection() {
                   : "opacity-0 scale-105 translate-x-12 z-0"
               }`}
             >
-              <img
+              <Image
                 src={slide.image}
                 alt={slide.title}
-                className={`w-full h-full object-cover object-center transition-transform duration-[6000ms] ease-out ${
+                fill
+                className={`object-cover object-center transition-transform duration-[6000ms] ease-out ${
                   isActive ? "scale-105" : "scale-100"
                 }`}
+                priority={index === 0}
+                sizes="100vw"
+                quality={85}
               />
             </div>
           );
@@ -207,17 +238,17 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Slide Indicators / Dots (Bottom Center) */}
-      <div className="absolute bottom-6 sm:bottom-10 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2.5 sm:gap-3 bg-black/40 px-4 py-2 rounded-full backdrop-blur-md border border-white/15">
+      {/* Slide Indicators — minimal thin bar style, no container */}
+      <div className="absolute bottom-5 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
         {heroSlides.map((_, i) => (
           <button
             key={i}
             onClick={() => goToSlide(i)}
             aria-label={`Pilih slide ${i + 1}`}
-            className={`transition-all duration-500 rounded-full ${
+            className={`no-min-size transition-all duration-500 rounded-full block ${
               i === currentSlide
-                ? "w-8 sm:w-10 h-2 sm:h-2.5 bg-[#f6a440] shadow-[0_0_12px_rgba(246,164,64,0.8)]"
-                : "w-2 sm:w-2.5 h-2 sm:h-2.5 bg-white/50 hover:bg-white/90"
+                ? "w-7 sm:w-8 h-1 bg-[#f6a440] shadow-[0_0_8px_rgba(246,164,64,0.7)]"
+                : "w-1.5 h-1.5 bg-white/45 hover:bg-white/80"
             }`}
           />
         ))}
@@ -225,4 +256,3 @@ export default function HeroSection() {
     </section>
   );
 }
-

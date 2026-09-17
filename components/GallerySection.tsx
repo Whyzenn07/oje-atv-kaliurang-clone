@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 
 const galleryImages = [
@@ -20,19 +20,66 @@ const galleryImages = [
 
 export default function GallerySection() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);
+  const touchStartX = useRef<number | null>(null);
+  const touchStartY = useRef<number | null>(null);
 
-  const prev = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const prev = useCallback(() => {
     if (selectedIdx !== null) {
       setSelectedIdx((selectedIdx - 1 + galleryImages.length) % galleryImages.length);
     }
-  };
+  }, [selectedIdx]);
 
-  const next = (e: React.MouseEvent) => {
-    e.stopPropagation();
+  const next = useCallback(() => {
     if (selectedIdx !== null) {
       setSelectedIdx((selectedIdx + 1) % galleryImages.length);
     }
+  }, [selectedIdx]);
+
+  const close = useCallback(() => {
+    setSelectedIdx(null);
+  }, []);
+
+  // Keyboard navigation
+  useEffect(() => {
+    if (selectedIdx === null) return;
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") close();
+      else if (e.key === "ArrowLeft") prev();
+      else if (e.key === "ArrowRight") next();
+    };
+
+    // Prevent body scroll when lightbox is open
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", handleKeyDown);
+
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [selectedIdx, prev, next, close]);
+
+  // Touch swipe handlers for lightbox
+  const onTouchStart = (e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX;
+    touchStartY.current = e.touches[0].clientY;
+  };
+
+  const onTouchEnd = (e: React.TouchEvent) => {
+    if (touchStartX.current === null || touchStartY.current === null) return;
+
+    const deltaX = e.changedTouches[0].clientX - touchStartX.current;
+    const deltaY = e.changedTouches[0].clientY - touchStartY.current;
+    const minSwipe = 50;
+
+    // Only trigger if horizontal swipe is dominant
+    if (Math.abs(deltaX) > Math.abs(deltaY) && Math.abs(deltaX) > minSwipe) {
+      if (deltaX > 0) prev();
+      else next();
+    }
+
+    touchStartX.current = null;
+    touchStartY.current = null;
   };
 
   return (
@@ -69,32 +116,37 @@ export default function GallerySection() {
         ))}
       </div>
 
-      {/* Lightbox Modal */}
+      {/* Lightbox Modal with Swipe + Keyboard support */}
       {selectedIdx !== null && (
         <div
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setSelectedIdx(null)}
+          onClick={close}
+          onTouchStart={onTouchStart}
+          onTouchEnd={onTouchEnd}
         >
           {/* Close button */}
           <button
-            onClick={() => setSelectedIdx(null)}
+            onClick={close}
             className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            aria-label="Tutup lightbox"
           >
             <X className="w-6 h-6" />
           </button>
 
           {/* Prev */}
           <button
-            onClick={prev}
+            onClick={(e) => { e.stopPropagation(); prev(); }}
             className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            aria-label="Foto sebelumnya"
           >
             <ChevronLeft className="w-8 h-8" />
           </button>
 
           {/* Next */}
           <button
-            onClick={next}
+            onClick={(e) => { e.stopPropagation(); next(); }}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
+            aria-label="Foto selanjutnya"
           >
             <ChevronRight className="w-8 h-8" />
           </button>
@@ -112,6 +164,11 @@ export default function GallerySection() {
             />
             <p className="text-center text-white/80 text-xs sm:text-sm font-bold uppercase tracking-wider mt-3">
               Foto {selectedIdx + 1} dari {galleryImages.length}
+              <span className="hidden sm:inline text-white/40 ml-3">• ← → untuk navigasi • Esc untuk tutup</span>
+            </p>
+            {/* Mobile swipe hint */}
+            <p className="text-center text-white/40 text-xs mt-1 sm:hidden">
+              ← Geser untuk navigasi →
             </p>
           </div>
         </div>

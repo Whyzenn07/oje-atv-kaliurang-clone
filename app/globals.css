@@ -12,40 +12,115 @@
   --font-sans: "Manrope", "Montserrat", "Inter", system-ui, sans-serif;
 }
 
-html, body {
+/* ─────────────────────────────────────────────────────────────
+   BASE & MOBILE-FIRST RESETS
+───────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  -webkit-tap-highlight-color: transparent; /* hilangkan highlight biru saat tap di Android */
+}
+
+html {
   scroll-behavior: smooth;
+  /* Safe-area padding untuk iPhone X+ (notch & home indicator) */
+  padding:
+    env(safe-area-inset-top, 0px)
+    env(safe-area-inset-right, 0px)
+    env(safe-area-inset-bottom, 0px)
+    env(safe-area-inset-left, 0px);
+}
+
+html, body {
   background-color: #ffffff;
   color: #1a1a1a;
   font-family: "Manrope", "Montserrat", "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
   max-width: 100vw;
+  /* Prevent momentum scroll jank */
+  overscroll-behavior-y: none;
+  /* Smooth scroll everywhere */
+  scroll-behavior: smooth;
 }
 
-/* Prevent iOS auto-zoom on inputs */
+/* Offset anchor scroll for fixed navbar height */
+section[id] {
+  scroll-margin-top: 72px;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE TOUCH OPTIMISASI
+───────────────────────────────────────────────────────────── */
+
+/* Prevent iOS auto-zoom on inputs (font < 16px trigger zoom) */
 @media screen and (max-width: 767px) {
   input, select, textarea {
     font-size: 16px !important;
   }
 }
 
-/* Custom scrollbar */
-::-webkit-scrollbar { width: 5px; }
+/* Minimum touch target 44×44px (Apple HIG & Google Material) */
+button, a, [role="button"] {
+  min-height: 44px;
+  min-width: 44px;
+  touch-action: manipulation; /* Hilangkan 300ms tap delay */
+}
+
+/* Kecualikan elemen dekoratif dari min-size rule */
+span[role="button"],
+nav li button,
+.no-min-size {
+  min-height: unset;
+  min-width: unset;
+}
+
+/* Safe-area insets untuk fixed elements di bawah layar iPhone */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+.safe-bottom-margin {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLLBAR
+───────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: #f1f1f1; }
-::-webkit-scrollbar-thumb { background: #b51b41; border-radius: 3px; }
+::-webkit-scrollbar-thumb { background: #b51b41; border-radius: 4px; }
 ::-webkit-scrollbar-thumb:hover { background: #8b1626; }
+
+/* Hide scrollbar on mobile (still scrollable) */
+@media (max-width: 767px) {
+  ::-webkit-scrollbar { display: none; }
+  body { scrollbar-width: none; }
+}
 
 ::selection {
   background-color: rgba(181, 27, 65, 0.2);
   color: #b51b41;
 }
 
-/* Floating WA pulse */
-@keyframes waPulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(34,197,94,0.5); }
-  50% { box-shadow: 0 0 0 14px rgba(34,197,94,0); }
+/* ─────────────────────────────────────────────────────────────
+   TYPOGRAPHY MOBILE SCALE
+───────────────────────────────────────────────────────────── */
+@media (max-width: 480px) {
+  /* Ensure line lengths are readable on small screens */
+  p { max-width: 100%; word-break: break-word; }
 }
-.wa-pulse { animation: waPulse 2s infinite; }
+
+/* ─────────────────────────────────────────────────────────────
+   ANIMATIONS
+───────────────────────────────────────────────────────────── */
+
+/* Floating WA pulse — pure green glow, no dark ring */
+@keyframes waPulse {
+  0%   { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0.55); }
+  70%  { box-shadow: 0 0 0 14px rgba(37, 211, 102, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(37, 211, 102, 0); }
+}
+.wa-pulse { animation: waPulse 2.2s ease-out infinite; }
 
 /* Phone call pulse */
 @keyframes callPulse {
@@ -65,34 +140,22 @@ html, body {
 }
 .phone-ring-hover:hover { animation: phoneRing 0.85s ease-in-out; }
 
-/* Elementor-style continuous floating animations */
+/* Triangle decorative float */
 @keyframes floatTriangle {
-  0%, 100% {
-    transform: translateY(0px) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-12px) rotate(5deg);
-  }
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-12px) rotate(5deg); }
 }
-.animate-float-triangle {
-  animation: floatTriangle 4.5s ease-in-out infinite;
-}
+.animate-float-triangle { animation: floatTriangle 4.5s ease-in-out infinite; }
 
+/* Generic float */
 @keyframes elementorFloat {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-7px);
-  }
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-7px); }
 }
-.animate-float {
-  animation: elementorFloat 3.2s ease-in-out infinite;
-}
-.animate-float-slow {
-  animation: elementorFloat 5s ease-in-out infinite;
-}
+.animate-float { animation: elementorFloat 3.2s ease-in-out infinite; }
+.animate-float-slow { animation: elementorFloat 5s ease-in-out infinite; }
 
+/* Social icons float */
 @keyframes socialFloat {
   0%, 100% { transform: translateY(0); }
   50% { transform: translateY(-5px); }
@@ -101,29 +164,21 @@ html, body {
 .animate-social-float-2 { animation: socialFloat 3.5s ease-in-out infinite 0.7s; }
 
 /* Micro-animations */
-@keyframes countUp {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(15px); }
   to { opacity: 1; transform: translateY(0); }
 }
-
 @keyframes slideLeft {
   from { opacity: 0; transform: translateX(-20px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes slideRight {
   from { opacity: 0; transform: translateX(20px); }
   to { opacity: 1; transform: translateX(0); }
 }
-
 @keyframes zoomIn {
   from { opacity: 0; transform: scale(0.94); }
   to { opacity: 1; transform: scale(1); }
-}
-
-@keyframes fadeUp {
-  from { opacity: 0; transform: translateY(15px); }
-  to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-slide-left { animation: slideLeft 0.7s ease-out forwards; }
@@ -131,8 +186,113 @@ html, body {
 .animate-zoom-in { animation: zoomIn 0.6s ease-out forwards; }
 .animate-fade-up { animation: fadeUp 0.6s ease-out forwards; }
 
-/* Date picker indicator styling */
+/* Hero slide transition smoother */
+@keyframes heroSlideIn {
+  from { opacity: 0; transform: translateX(20px) scale(1.02); }
+  to   { opacity: 1; transform: translateX(0) scale(1); }
+}
+.animate-hero-slide-in { animation: heroSlideIn 0.7s cubic-bezier(0.25,1,0.5,1) forwards; }
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL-REVEAL (Intersection Observer based)
+───────────────────────────────────────────────────────────── */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.7s ease-out, transform 0.7s ease-out;
+}
+.scroll-reveal.revealed {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FAQ ACCORDION
+───────────────────────────────────────────────────────────── */
+.faq-content {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.35s ease-out;
+}
+.faq-content.faq-open {
+  grid-template-rows: 1fr;
+}
+.faq-content > div {
+  overflow: hidden;
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL-TO-TOP BUTTON
+───────────────────────────────────────────────────────────── */
+@keyframes scrollTopBounce {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-4px); }
+}
+.scroll-top-btn {
+  animation: scrollTopBounce 2.5s ease-in-out infinite;
+}
+.scroll-top-btn:hover {
+  animation: none;
+}
+
+/* Respect user's reduced-motion preference */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  .scroll-reveal {
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   DATE PICKER
+───────────────────────────────────────────────────────────── */
 input[type="date"]::-webkit-calendar-picker-indicator {
   cursor: pointer;
   filter: invert(1);
+  /* Larger tap target on mobile */
+  padding: 6px;
 }
+
+/* ─────────────────────────────────────────────────────────────
+   MOBILE STICKY CTA BAR
+   Tampil di bawah layar mobile saat scroll, tersembunyi di desktop
+───────────────────────────────────────────────────────────── */
+.mobile-sticky-cta {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 40;
+  display: flex;
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+  background: #1c1c1c;
+  border-top: 1px solid rgba(255,255,255,0.08);
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
+}
+@media (min-width: 768px) {
+  .mobile-sticky-cta { display: none; }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   FLOATING WA BUTTON — push up saat mobile sticky bar tampil
+───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .wa-float-btn {
+    bottom: calc(64px + env(safe-area-inset-bottom, 8px)) !important;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   SCROLL-TO-TOP — push up di atas WA button di mobile
+───────────────────────────────────────────────────────────── */
+@media (max-width: 767px) {
+  .scroll-top-fixed {
+    bottom: calc(130px + env(safe-area-inset-bottom, 8px)) !important;
+  }
+}
+

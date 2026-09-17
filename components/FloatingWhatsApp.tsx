@@ -1,7 +1,7 @@
 "use client";
 
-import { MessageCircle } from "lucide-react";
 import { CONTACT } from "@/lib/constants";
+import { WhatsAppIcon } from "@/components/SocialIcons";
 
 export default function FloatingWhatsApp() {
   return (
@@ -10,7 +10,8 @@ export default function FloatingWhatsApp() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Chat WhatsApp OJE ATV Kaliurang"
-      className="fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-3"
+      // wa-float-btn: class khusus agar naik di atas sticky bar di mobile (via CSS)
+      className="wa-float-btn fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-3"
     >
       {/* Tooltip label (desktop only) */}
       <span className="hidden md:block opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
@@ -18,8 +19,8 @@ export default function FloatingWhatsApp() {
       </span>
 
       {/* Button */}
-      <div className="relative w-13 h-13 sm:w-14 sm:h-14 bg-green-500 hover:bg-green-400 active:scale-90 rounded-full flex items-center justify-center shadow-xl shadow-green-500/40 transition-all duration-300 hover:scale-110 wa-pulse">
-        <MessageCircle className="w-6 h-6 sm:w-7 sm:h-7 text-white fill-white transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
+      <div className="relative w-14 h-14 bg-[#25D366] hover:bg-[#20ba59] active:scale-90 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-110 wa-pulse">
+        <WhatsAppIcon className="w-7 h-7 text-white fill-white transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110" />
       </div>
     </a>
   );

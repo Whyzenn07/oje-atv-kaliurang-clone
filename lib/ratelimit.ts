@@ -1,10 +1,13 @@
-﻿/**
+/**
  * lib/ratelimit.ts
- * Rate limiting sederhana berbasis in-memory (per Vercel serverless instance)
- * Max 3 booking per IP per jam
+ * Rate limiting berlapis dengan perlindungan IP spoofing
  *
- * Catatan: Untuk produksi skala besar, gunakan Redis (Upstash gratis).
- * Untuk UMKM seperti OJE ATV, in-memory sudah lebih dari cukup.
+ * Lapisan perlindungan:
+ * 1. Per-IP rate limit (maks 3 booking/jam per IP)
+ * 2. Global rate limit (maks 30 booking/jam total — cegah distributed flood)
+ * 3. Body size guard (maks 8KB — konstanta dipakai di route.ts)
+ * 4. Anti-IP-spoofing: di Vercel, ambil IP asli dari posisi TERAKHIR
+ *    x-forwarded-for (Vercel edge yang menambahkan, tidak bisa di-spoof client)
  */
 
 interface RateLimitEntry {
@@ -15,32 +18,74 @@ interface RateLimitEntry {
 // Map IP => {count, resetAt}
 const store = new Map<string, RateLimitEntry>();
 
-const MAX_REQUESTS = 3;    // max booking per window
+// Global counter — cegah distributed flood dari banyak IP berbeda
+let globalCount = 0;
+let globalResetAt = Date.now() + 60 * 60 * 1000;
+
+const MAX_REQUESTS_PER_IP = 3;    // maks booking per IP per jam
+const MAX_REQUESTS_GLOBAL  = 30;  // maks booking total per jam (anti-DDoS)
 const WINDOW_MS = 60 * 60 * 1000; // 1 jam dalam milidetik
 
+/** Ukuran body maksimum yang diizinkan (8 KB) — dipakai di route.ts */
+export const MAX_BODY_BYTES = 8 * 1024;
+
 /**
- * Cek apakah IP sudah melebihi batas request
+ * Ekstrak IP terpercaya dari header.
+ * Di Vercel: IP asli ada di posisi TERAKHIR x-forwarded-for
+ *            (Vercel edge yang menambahkan, tidak bisa di-spoof oleh client).
+ * Di non-Vercel/lokal: ambil posisi pertama sebagai best-effort.
+ */
+export function extractTrustedIp(
+  forwardedFor: string | null,
+  isVercel: boolean
+): string {
+  if (!forwardedFor) return "unknown";
+
+  const ips = forwardedFor.split(",").map((s) => s.trim()).filter(Boolean);
+  if (ips.length === 0) return "unknown";
+
+  if (isVercel) {
+    // Posisi terakhir = IP yang ditambahkan Vercel edge — tidak bisa dipalsukan
+    return ips[ips.length - 1];
+  }
+
+  // Local / non-Vercel: ambil pertama (bisa di-spoof, tapi fine untuk dev)
+  return ips[0];
+}
+
+/**
+ * Cek apakah IP sudah melebihi batas request.
  * @returns true jika rate limited (harus ditolak)
  */
 export function isRateLimited(ip: string): boolean {
   const now = Date.now();
+
+  // ─── Cek global flood limit dulu ────────────────────────────────────────
+  if (now > globalResetAt) {
+    globalCount = 0;
+    globalResetAt = now + WINDOW_MS;
+  }
+  if (globalCount >= MAX_REQUESTS_GLOBAL) {
+    return true; // distributed flood terdeteksi
+  }
+
+  // ─── Cek per-IP limit ────────────────────────────────────────────────────
   const entry = store.get(ip);
 
-  // IP pertama kali atau window sudah expired — reset
   if (!entry || now > entry.resetAt) {
     store.set(ip, { count: 1, resetAt: now + WINDOW_MS });
-    return false; // tidak diblokir
+    globalCount++;
+    return false;
   }
 
-  // Masih dalam window
-  if (entry.count >= MAX_REQUESTS) {
-    return true; // diblokir
+  if (entry.count >= MAX_REQUESTS_PER_IP) {
+    return true;
   }
 
-  // Increment counter
   entry.count++;
   store.set(ip, entry);
-  return false; // tidak diblokir
+  globalCount++;
+  return false;
 }
 
 /**

@@ -2,6 +2,10 @@
  * lib/mailer.ts
  * Kirim email notifikasi ke admin via Resend
  * Resend adalah layanan email transaksional gratis (100 email/hari)
+ *
+ * Keamanan:
+ * - In-memory email rate limit: maks 8 email/menit (cegah Resend flood)
+ * - Deduplication: booking nama+tanggal sama dalam 5 menit hanya 1 email
  */
 import { Resend } from "resend";
 import type { BookingInput } from "./validations";
@@ -19,6 +23,49 @@ function getResend(): Resend {
 const ADMIN_EMAIL = process.env.ADMIN_EMAIL || "admin@ojeatvkaliurang.com";
 const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "booking@ojeatvkaliurang.com";
 
+// ─── Email Rate Limiter ────────────────────────────────────────────────────
+// Cegah flood inbox admin + Resend API limit (10 req/s, 100 email/hari)
+let emailCount = 0;
+let emailWindowResetAt = Date.now() + 60_000;
+const MAX_EMAILS_PER_MINUTE = 8;
+
+// ─── Deduplication Guard ───────────────────────────────────────────────────
+// Booking dengan nama+tanggal sama dalam 5 menit hanya kirim 1 email
+const recentBookings = new Map<string, number>(); // key => timestamp
+const DEDUP_WINDOW_MS = 5 * 60_000; // 5 menit
+
+function isEmailAllowed(dedupeKey: string): { allowed: boolean; reason?: string } {
+  const now = Date.now();
+
+  // Reset window jika sudah expired
+  if (now > emailWindowResetAt) {
+    emailCount = 0;
+    emailWindowResetAt = now + 60_000;
+  }
+
+  // Cek rate limit per menit
+  if (emailCount >= MAX_EMAILS_PER_MINUTE) {
+    return { allowed: false, reason: `Rate limit: maks ${MAX_EMAILS_PER_MINUTE} email/menit` };
+  }
+
+  // Cek deduplication
+  const lastSent = recentBookings.get(dedupeKey);
+  if (lastSent && now - lastSent < DEDUP_WINDOW_MS) {
+    return { allowed: false, reason: `Duplikat booking terdeteksi dalam ${DEDUP_WINDOW_MS / 60_000} menit` };
+  }
+
+  // Lulus semua cek
+  emailCount++;
+  recentBookings.set(dedupeKey, now);
+
+  // Cleanup expired dedup entries
+  for (const [k, ts] of recentBookings.entries()) {
+    if (now - ts > DEDUP_WINDOW_MS) recentBookings.delete(k);
+  }
+
+  return { allowed: true };
+}
+
 
 /**
  * Kirim notifikasi email ke admin setelah booking baru masuk
@@ -26,6 +73,15 @@ const FROM_EMAIL = process.env.RESEND_FROM_EMAIL || "booking@ojeatvkaliurang.com
 export async function sendBookingNotification(
   booking: BookingInput & { id: string; created_at: string }
 ): Promise<{ success: boolean; error?: string }> {
+  // ─── Guard: Email rate limit + deduplication ─────────────────────────────
+  const dedupeKey = `${booking.nama.toLowerCase().trim()}|${booking.tanggal}`;
+  const guard = isEmailAllowed(dedupeKey);
+  if (!guard.allowed) {
+    console.warn("[Mailer] Email diblokir:", guard.reason);
+    // Return true agar booking tetap sukses di sisi user — hanya email yang diskip
+    return { success: true };
+  }
+
   const tanggalFormatted = new Date(booking.tanggal).toLocaleDateString("id-ID", {
     weekday: "long",
     year: "numeric",

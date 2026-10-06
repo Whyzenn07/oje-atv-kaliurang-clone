@@ -52,6 +52,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  images: {
+    qualities: [75, 85],
+  },
   allowedDevOrigins: ["127.0.0.1", "localhost", "192.168.1.215"],
 
   async headers() {

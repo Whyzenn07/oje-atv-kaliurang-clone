@@ -223,10 +223,10 @@ export default function BookingForm() {
   const isBlocked = !isValid || hasErrors || submitted || cooldown > 0;
 
   const inputBase =
-    "w-full bg-white border text-[#1c1c1c] placeholder-gray-400 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-colors duration-200 text-base focus:ring-2 focus:ring-[#1c1c1c]/10";
+    "w-full min-w-0 bg-white border text-[#1c1c1c] placeholder-gray-400 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-colors duration-200 text-base focus:ring-2 focus:ring-[#1c1c1c]/10";
   const inputClass = (err?: string) =>
     `${inputBase} ${err ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#1c1c1c]"}`;
-  const labelClass = "block text-xs sm:text-sm font-bold text-[#1c1c1c] mb-1.5 sm:mb-2";
+  const labelClass = "block text-xs sm:text-sm font-bold text-[#1c1c1c]";
 
   const unitPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
   const qty = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
@@ -237,103 +237,105 @@ export default function BookingForm() {
     setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), 30)) }));
 
   return (
-    <section id="booking" className="py-14 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c]">
-      <div className="max-w-3xl mx-auto px-4 sm:px-6">
+    <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-hidden">
+      <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 flex flex-col gap-6 sm:gap-8">
         {/* Section Header */}
-        <div className="mb-8 sm:mb-10 text-left sm:text-center">
-          <span className="block text-xs font-extrabold tracking-[0.16em] uppercase text-[#b51b41] mb-2">
+        <div className="flex flex-col items-start sm:items-center text-left sm:text-center gap-2 sm:gap-3">
+          <span className="text-xs font-extrabold tracking-[0.16em] uppercase text-[#b51b41]">
             Form Pemesanan
           </span>
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1c1c] mb-3">
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1c1c]">
             Booking ATV Kaliurang
           </h2>
-          <p className="text-gray-500 text-xs sm:text-base max-w-xl sm:mx-auto leading-relaxed">
+          <p className="text-gray-500 text-xs sm:text-base max-w-xl leading-relaxed">
             Lengkapi data berikut. Kode booking dan estimasi biaya dibuat otomatis, konfirmasi dilanjutkan melalui WhatsApp.
           </p>
         </div>
 
         {/* Error Feedback */}
         {apiError && (
-          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
             <p className="text-red-700 text-sm font-medium">{apiError}</p>
           </div>
         )}
 
         {/* Booking Receipt Card (Ticket) */}
         {receipt && (
-          <div className="mb-6 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
-            <div className="text-center pb-4 mb-5 border-b border-dashed border-gray-300">
-              <span className="block text-xs font-extrabold tracking-widest uppercase text-green-700 mb-1">
+          <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-8 shadow-sm flex flex-col gap-5">
+            <div className="flex flex-col items-center text-center gap-1 pb-4 border-b border-dashed border-gray-300">
+              <span className="text-xs font-extrabold tracking-widest uppercase text-green-700">
                 Booking Tercatat
               </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c1c] tracking-tight">
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c1c] tracking-tight break-all">
                 {receipt.code}
               </h3>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+              <p className="text-xs sm:text-sm text-gray-500">
                 Tunjukkan kode ini saat tiba di Basecamp Kaliurang
               </p>
             </div>
 
-            <dl className="space-y-2.5 text-sm mb-6">
-              <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Nama Pemesan</dt>
-                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.nama}</dd>
+            <dl className="flex flex-col gap-2.5 text-sm">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Nama Pemesan</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.nama}</dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">WhatsApp</dt>
-                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.whatsapp}</dd>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">WhatsApp</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.whatsapp}</dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Paket</dt>
-                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.paket}</dd>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Paket</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.paket}</dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Tanggal &amp; Unit</dt>
-                <dd className="font-semibold text-[#1c1c1c] text-right">
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Tanggal &amp; Unit</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right">
                   {receipt.tanggal} · {receipt.jumlah} unit
                 </dd>
               </div>
-              <div className="flex justify-between gap-4">
-                <dt className="text-gray-500">Estimasi Total</dt>
-                <dd className="font-extrabold text-[#1c1c1c] text-right">{receipt.estimasi}</dd>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Estimasi Total</dt>
+                <dd className="font-extrabold text-[#1c1c1c] sm:text-right">{receipt.estimasi}</dd>
               </div>
               {receipt.catatan && (
-                <div className="flex justify-between gap-4">
-                  <dt className="text-gray-500">Catatan</dt>
-                  <dd className="font-medium text-gray-700 text-right">{receipt.catatan}</dd>
+                <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                  <dt className="text-gray-500 shrink-0">Catatan</dt>
+                  <dd className="font-medium text-gray-700 sm:text-right break-words min-w-0">{receipt.catatan}</dd>
                 </div>
               )}
             </dl>
 
-            {lastWaUrl && (
-              <a
-                href={lastWaUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-[#1c1c1c] hover:bg-black text-white font-bold text-base rounded-xl transition-colors"
+            <div className="flex flex-col gap-2">
+              {lastWaUrl && (
+                <a
+                  href={lastWaUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-[#1c1c1c] hover:bg-black text-white font-bold text-base rounded-xl transition-colors"
+                >
+                  <WhatsAppIcon className="w-5 h-5 fill-white shrink-0" />
+                  <span>Kirim Rincian via WhatsApp</span>
+                </a>
+              )}
+              <button
+                type="button"
+                onClick={() => setReceipt(null)}
+                className="w-full py-2.5 text-xs sm:text-sm font-bold text-gray-500 hover:text-[#1c1c1c] transition-colors cursor-pointer"
               >
-                <WhatsAppIcon className="w-5 h-5 fill-white" />
-                <span>Kirim Rincian via WhatsApp</span>
-              </a>
-            )}
-            <button
-              type="button"
-              onClick={() => setReceipt(null)}
-              className="w-full mt-3 py-2 text-xs sm:text-sm font-bold text-gray-500 hover:text-[#1c1c1c] transition-colors cursor-pointer"
-            >
-              Tutup Ringkasan
-            </button>
+                Tutup Ringkasan
+              </button>
+            </div>
           </div>
         )}
 
         {/* Form Card */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-10 shadow-sm">
-          <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
             <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 border-b border-gray-200">
               Data Pemesan
             </p>
 
-            <div>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
               <label htmlFor="nama" className={labelClass}>Nama Lengkap</label>
               <input
                 type="text"
@@ -346,10 +348,10 @@ export default function BookingForm() {
                 required
                 className={inputClass(errors.nama)}
               />
-              {errors.nama && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.nama}</p>}
+              {errors.nama && <p className="text-red-600 text-xs font-medium">{errors.nama}</p>}
             </div>
 
-            <div>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
               <label htmlFor="whatsapp" className={labelClass}>Nomor WhatsApp</label>
               <input
                 type="tel"
@@ -362,14 +364,14 @@ export default function BookingForm() {
                 required
                 className={inputClass(errors.whatsapp)}
               />
-              {errors.whatsapp && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.whatsapp}</p>}
+              {errors.whatsapp && <p className="text-red-600 text-xs font-medium">{errors.whatsapp}</p>}
             </div>
 
             <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 pt-2 border-b border-gray-200">
               Detail Sewa
             </p>
 
-            <div>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
               <label htmlFor="paket" className={labelClass}>Paket</label>
               <select
                 id="paket"
@@ -387,11 +389,11 @@ export default function BookingForm() {
                   </option>
                 ))}
               </select>
-              {errors.paket && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.paket}</p>}
+              {errors.paket && <p className="text-red-600 text-xs font-medium">{errors.paket}</p>}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
-              <div>
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
                 <label htmlFor="tanggal" className={labelClass}>Tanggal</label>
                 <input
                   type="date"
@@ -404,17 +406,17 @@ export default function BookingForm() {
                   min={minDate || undefined}
                   className={`${inputClass(errors.tanggal)} h-[50px] sm:h-[54px]`}
                 />
-                {errors.tanggal && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.tanggal}</p>}
+                {errors.tanggal && <p className="text-red-600 text-xs font-medium">{errors.tanggal}</p>}
               </div>
 
-              <div>
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
                 <label htmlFor="jumlah" className={labelClass}>Jumlah Unit</label>
                 <div className="flex items-center justify-between h-[50px] sm:h-[54px] border border-gray-300 rounded-xl px-1.5 bg-white">
                   <button
                     type="button"
                     onClick={() => setQty(qty - 1)}
                     aria-label="Kurangi jumlah unit"
-                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     &minus;
                   </button>
@@ -426,13 +428,13 @@ export default function BookingForm() {
                     onChange={handleChange}
                     min="1"
                     max="30"
-                    className="w-16 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                    className="w-16 min-w-0 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
                     onClick={() => setQty(qty + 1)}
                     aria-label="Tambah jumlah unit"
-                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     +
                   </button>
@@ -440,17 +442,17 @@ export default function BookingForm() {
               </div>
             </div>
 
-            <div>
+            <div className="flex flex-col gap-1.5 sm:gap-2">
               <label htmlFor="catatan" className={labelClass}>
                 Catatan <span className="font-medium text-gray-400">(opsional)</span>
               </label>
-              <div className="flex flex-wrap gap-2 mb-2.5">
+              <div className="flex flex-wrap gap-2">
                 {notePresets.map((preset) => (
                   <button
                     key={preset}
                     type="button"
                     onClick={() => toggleNotePreset(preset)}
-                    className="text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-full px-3.5 py-1.5 transition-colors cursor-pointer"
+                    className="text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-full px-3.5 py-1.5 text-left transition-colors cursor-pointer"
                   >
                     {preset}
                   </button>
@@ -467,7 +469,7 @@ export default function BookingForm() {
               />
             </div>
 
-            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 sm:px-5 sm:py-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 sm:px-5 sm:py-4">
               <span className="text-xs sm:text-sm text-gray-500 font-semibold">
                 Estimasi total (bayar di lokasi)
               </span>
@@ -487,7 +489,7 @@ export default function BookingForm() {
             >
               {submitted ? (
                 <>
-                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                  <svg className="animate-spin w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none">
                     <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
@@ -497,7 +499,7 @@ export default function BookingForm() {
                 <>Silakan tunggu {cooldown} detik...</>
               ) : (
                 <>
-                  <WhatsAppIcon className="w-5 h-5 fill-current" />
+                  <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
                   <span>Kirim Booking via WhatsApp</span>
                 </>
               )}

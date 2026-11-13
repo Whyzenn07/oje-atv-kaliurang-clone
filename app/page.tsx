@@ -13,7 +13,6 @@ import LocationSection from "@/components/LocationSection";
 import FooterSection from "@/components/FooterSection";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
 import MobileStickyBar from "@/components/MobileStickyBar";
-import ScrollToTop from "@/components/ScrollToTop";
 
 export default function Home() {
   return (
@@ -36,7 +35,6 @@ export default function Home() {
       </div>
       <FloatingWhatsApp />
       <MobileStickyBar />
-      <ScrollToTop />
     </main>
   );
 }

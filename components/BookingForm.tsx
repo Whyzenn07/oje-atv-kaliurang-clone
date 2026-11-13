@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
-import { Send, User, Calendar, Bike, Hash, FileText, ShieldCheck, CheckCircle2, Phone } from "lucide-react";
+import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { CONTACT } from "@/lib/constants";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
@@ -11,6 +10,26 @@ const packages = [
   "ATV Single (Rp 300.000 / 2 Jam)",
   "ATV Boncengan (Rp 350.000 / 2 Jam)",
 ];
+
+const notePresets = [
+  "Request dokumentasi fotografer & editor",
+  "Rombongan vacation perusahaan",
+  "Pemula, butuh briefing santai",
+];
+
+type BookingReceipt = {
+  code: string;
+  nama: string;
+  whatsapp: string;
+  paket: string;
+  tanggal: string;
+  jumlah: number;
+  estimasi: string;
+  catatan: string;
+};
+
+const emptySubscribe = () => () => {};
+const getTodayDateString = () => new Date().toLocaleDateString("en-CA");
 
 /** Sanitasi input: hapus karakter berbahaya & batasi panjang */
 function sanitize(str: string, maxLen = 200): string {
@@ -30,11 +49,11 @@ export default function BookingForm() {
     catatan: "",
   });
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const [minDate, setMinDate] = useState("");
+  const minDate = useSyncExternalStore(emptySubscribe, getTodayDateString, () => "");
   const [submitted, setSubmitted] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
-  const [successMsg, setSuccessMsg] = useState<string | null>(null);
+  const [receipt, setReceipt] = useState<BookingReceipt | null>(null);
   const [lastWaUrl, setLastWaUrl] = useState<string | null>(null);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -51,10 +70,6 @@ export default function BookingForm() {
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
-
-  useEffect(() => {
-    setMinDate(new Date().toISOString().split("T")[0]);
-  }, []);
 
   // Bersihkan interval cooldown saat komponen unmount
   useEffect(() => {
@@ -117,7 +132,16 @@ export default function BookingForm() {
 
     setSubmitted(true);
     setApiError(null);
-    setSuccessMsg(null);
+    setReceipt(null);
+
+    const safeName = sanitize(form.nama, 100);
+    const safeWA = sanitize(form.whatsapp, 20);
+    const safeCatatan = form.catatan ? sanitize(form.catatan, 300) : "";
+    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
+    const selectedPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
+    const totalEstimasi = selectedPrice
+      ? `Rp ${(selectedPrice * safeJumlah).toLocaleString("id-ID")}`
+      : "-";
 
     try {
       // ── Step 1: Simpan ke database via API Route ──────────────────────
@@ -125,12 +149,12 @@ export default function BookingForm() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          nama: sanitize(form.nama, 100),
-          whatsapp: sanitize(form.whatsapp, 20),
+          nama: safeName,
+          whatsapp: safeWA,
           paket: form.paket,
           tanggal: form.tanggal,
-          jumlah: Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30),
-          catatan: form.catatan ? sanitize(form.catatan, 300) : null,
+          jumlah: safeJumlah,
+          catatan: safeCatatan || null,
         }),
       });
 
@@ -147,17 +171,25 @@ export default function BookingForm() {
         ? `#${result.bookingCode}`
         : result.bookingId
         ? `#${result.bookingId.substring(0, 8).toUpperCase()}`
-        : "";
+        : "#TERCATAT";
       const text = encodeURIComponent(formatWAMessage(bookingCode));
       const waUrl = `https://wa.me/${CONTACT.WA_NUMBER}?text=${text}`;
 
       setLastWaUrl(waUrl);
-      setSuccessMsg(
-        `Booking ${bookingCode} berhasil dicatat di sistem! Kuota terkonfirmasi & admin kami telah menerima notifikasi.`
-      );
+      setReceipt({
+        code: bookingCode,
+        nama: safeName,
+        whatsapp: safeWA,
+        paket: form.paket,
+        tanggal: form.tanggal,
+        jumlah: safeJumlah,
+        estimasi: totalEstimasi,
+        catatan: safeCatatan,
+      });
 
-      // Reset form
+      // Reset form & validation touched state
       setForm({ nama: "", whatsapp: "", paket: "", tanggal: "", jumlah: "1", catatan: "" });
+      setTouched({});
 
       // Coba buka WhatsApp otomatis (jika diizinkan popup browser)
       setTimeout(() => {
@@ -177,76 +209,132 @@ export default function BookingForm() {
     }
   };
 
+  const toggleNotePreset = (note: string) => {
+    setForm((prev) => {
+      const current = prev.catatan.trim();
+      if (!current) return { ...prev, catatan: note };
+      if (current.includes(note)) return prev;
+      return { ...prev, catatan: `${current}, ${note}` };
+    });
+  };
+
   const isValid = form.nama.trim() && form.whatsapp.trim() && form.paket && form.tanggal;
   const hasErrors = Object.keys(errors).length > 0;
   const isBlocked = !isValid || hasErrors || submitted || cooldown > 0;
 
-  return (
-    <section id="booking" className="py-14 sm:py-24 bg-[#1c1c1c] relative text-white">
-      <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#b51b41] to-transparent" />
+  const inputBase =
+    "w-full bg-white border text-[#1c1c1c] placeholder-gray-400 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-colors duration-200 text-base focus:ring-2 focus:ring-[#1c1c1c]/10";
+  const inputClass = (err?: string) =>
+    `${inputBase} ${err ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#1c1c1c]"}`;
+  const labelClass = "block text-xs sm:text-sm font-bold text-[#1c1c1c] mb-1.5 sm:mb-2";
 
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 relative z-10">
+  const unitPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
+  const qty = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
+  const estimate = unitPrice
+    ? `Rp ${(unitPrice * qty).toLocaleString("id-ID")}`
+    : "Pilih paket terlebih dahulu";
+  const setQty = (n: number) =>
+    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), 30)) }));
+
+  return (
+    <section id="booking" className="py-14 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c]">
+      <div className="max-w-3xl mx-auto px-4 sm:px-6">
         {/* Section Header */}
-        <div className="text-center mb-8 sm:mb-10">
-          <span className="inline-block text-xs font-black tracking-widest uppercase text-green-400 bg-green-500/10 border border-green-500/20 px-3.5 py-1 rounded-full mb-3">
-            Form Pemesanan Online
+        <div className="mb-8 sm:mb-10 text-left sm:text-center">
+          <span className="block text-xs font-extrabold tracking-[0.16em] uppercase text-[#b51b41] mb-2">
+            Form Pemesanan
           </span>
-          <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white mb-3">
-            Pesan ATV Via{" "}
-            <span className="text-green-400">WhatsApp</span>
+          <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1c1c] mb-3">
+            Booking ATV Kaliurang
           </h2>
-          <p className="text-gray-400 text-xs sm:text-base max-w-xl mx-auto">
-            Isi form pemesanan berikut untuk reservasi tour ATV Kaliurang secara cepat.
+          <p className="text-gray-500 text-xs sm:text-base max-w-xl sm:mx-auto leading-relaxed">
+            Lengkapi data berikut. Kode booking dan estimasi biaya dibuat otomatis, konfirmasi dilanjutkan melalui WhatsApp.
           </p>
         </div>
 
-        {/* Error & Success Feedback */}
+        {/* Error Feedback */}
         {apiError && (
-          <div className="mx-4 sm:mx-0 mb-6 bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-start gap-3">
-            <svg className="w-5 h-5 text-red-400 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M21 12A9 9 0 113 12a9 9 0 0118 0z" />
-            </svg>
-            <p className="text-red-400 text-sm font-medium">{apiError}</p>
+          <div className="mb-6 bg-red-50 border border-red-200 rounded-xl p-4">
+            <p className="text-red-700 text-sm font-medium">{apiError}</p>
           </div>
         )}
-        {successMsg && (
-          <div className="mx-4 sm:mx-0 mb-6 bg-green-500/10 border border-green-500/30 rounded-2xl p-6 sm:p-7 flex flex-col items-center gap-3.5 animate-fade-up text-center shadow-xl shadow-green-950/20">
-            <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mb-1">
-              <CheckCircle2 className="w-8 h-8 text-green-400" />
+
+        {/* Booking Receipt Card (Ticket) */}
+        {receipt && (
+          <div className="mb-6 bg-white border border-gray-200 rounded-2xl p-6 sm:p-8 shadow-sm">
+            <div className="text-center pb-4 mb-5 border-b border-dashed border-gray-300">
+              <span className="block text-xs font-extrabold tracking-widest uppercase text-green-700 mb-1">
+                Booking Tercatat
+              </span>
+              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c1c] tracking-tight">
+                {receipt.code}
+              </h3>
+              <p className="text-xs sm:text-sm text-gray-500 mt-1">
+                Tunjukkan kode ini saat tiba di Basecamp Kaliurang
+              </p>
             </div>
-            <p className="text-green-400 text-base sm:text-lg font-bold">{successMsg}</p>
-            <p className="text-gray-300 text-xs sm:text-sm max-w-lg">
-              Data pemesanan Anda sudah tersimpan di database. Tekan tombol di bawah untuk langsung mengirimkan pesan rincian booking ini ke WhatsApp Admin:
-            </p>
+
+            <dl className="space-y-2.5 text-sm mb-6">
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Nama Pemesan</dt>
+                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.nama}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">WhatsApp</dt>
+                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.whatsapp}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Paket</dt>
+                <dd className="font-semibold text-[#1c1c1c] text-right">{receipt.paket}</dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Tanggal &amp; Unit</dt>
+                <dd className="font-semibold text-[#1c1c1c] text-right">
+                  {receipt.tanggal} · {receipt.jumlah} unit
+                </dd>
+              </div>
+              <div className="flex justify-between gap-4">
+                <dt className="text-gray-500">Estimasi Total</dt>
+                <dd className="font-extrabold text-[#1c1c1c] text-right">{receipt.estimasi}</dd>
+              </div>
+              {receipt.catatan && (
+                <div className="flex justify-between gap-4">
+                  <dt className="text-gray-500">Catatan</dt>
+                  <dd className="font-medium text-gray-700 text-right">{receipt.catatan}</dd>
+                </div>
+              )}
+            </dl>
+
             {lastWaUrl && (
               <a
                 href={lastWaUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="mt-2 inline-flex items-center justify-center gap-2.5 px-6 py-3.5 bg-[#25D366] hover:bg-[#20ba59] active:scale-95 text-white font-extrabold text-sm sm:text-base rounded-xl shadow-lg shadow-green-600/30 transition-all duration-200 hover:scale-105"
+                className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-[#1c1c1c] hover:bg-black text-white font-bold text-base rounded-xl transition-colors"
               >
                 <WhatsAppIcon className="w-5 h-5 fill-white" />
-                <span>Kirim Rincian Booking via WhatsApp &rarr;</span>
+                <span>Kirim Rincian via WhatsApp</span>
               </a>
             )}
-            <p className="text-gray-500 text-[11px] mt-1">
-              *Jika aplikasi WhatsApp tidak otomatis terbuka, klik tombol hijau di atas.
-            </p>
+            <button
+              type="button"
+              onClick={() => setReceipt(null)}
+              className="w-full mt-3 py-2 text-xs sm:text-sm font-bold text-gray-500 hover:text-[#1c1c1c] transition-colors cursor-pointer"
+            >
+              Tutup Ringkasan
+            </button>
           </div>
         )}
 
         {/* Form Card */}
-        <div className="bg-gray-900/90 border border-white/10 rounded-2xl p-5 sm:p-10 shadow-2xl backdrop-blur">
+        <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-10 shadow-sm">
           <form onSubmit={handleSubmit} className="space-y-5 sm:space-y-6">
-            {/* Nama Lengkap */}
+            <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 border-b border-gray-200">
+              Data Pemesan
+            </p>
+
             <div>
-              <label
-                htmlFor="nama"
-                className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-              >
-                <User className="w-4 h-4 text-amber-400" />
-                Nama Lengkap <span className="text-red-400">*</span>
-              </label>
+              <label htmlFor="nama" className={labelClass}>Nama Lengkap</label>
               <input
                 type="text"
                 id="nama"
@@ -256,20 +344,13 @@ export default function BookingForm() {
                 onBlur={() => handleBlur("nama")}
                 placeholder="Contoh: Budi Santoso"
                 required
-                className={`w-full bg-gray-950 border focus:ring-2 text-white placeholder-gray-600 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base ${errors.nama ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
+                className={inputClass(errors.nama)}
               />
-              {errors.nama && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.nama}</p>}
+              {errors.nama && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.nama}</p>}
             </div>
 
-            {/* Nomor WhatsApp */}
             <div>
-              <label
-                htmlFor="whatsapp"
-                className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-              >
-                <Phone className="w-4 h-4 text-amber-400" />
-                Nomor WhatsApp Anda <span className="text-red-400">*</span>
-              </label>
+              <label htmlFor="whatsapp" className={labelClass}>Nomor WhatsApp</label>
               <input
                 type="tel"
                 id="whatsapp"
@@ -279,20 +360,17 @@ export default function BookingForm() {
                 onBlur={() => handleBlur("whatsapp")}
                 placeholder="Contoh: 081234567890"
                 required
-                className={`w-full bg-gray-950 border focus:ring-2 text-white placeholder-gray-600 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base ${errors.whatsapp ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
+                className={inputClass(errors.whatsapp)}
               />
-              {errors.whatsapp && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.whatsapp}</p>}
+              {errors.whatsapp && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.whatsapp}</p>}
             </div>
 
-            {/* Pilihan Paket */}
+            <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 pt-2 border-b border-gray-200">
+              Detail Sewa
+            </p>
+
             <div>
-              <label
-                htmlFor="paket"
-                className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-              >
-                <Bike className="w-4 h-4 text-amber-400" />
-                Pilihan Paket <span className="text-red-400">*</span>
-              </label>
+              <label htmlFor="paket" className={labelClass}>Paket</label>
               <select
                 id="paket"
                 name="paket"
@@ -300,30 +378,21 @@ export default function BookingForm() {
                 onChange={handleChange}
                 onBlur={() => handleBlur("paket")}
                 required
-                className={`w-full bg-gray-950 border focus:ring-2 text-white rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base cursor-pointer ${errors.paket ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
+                className={`${inputClass(errors.paket)} h-[50px] sm:h-[54px] cursor-pointer`}
               >
-                <option value="" className="text-gray-600">
-                  — Pilih Paket ATV —
-                </option>
+                <option value="">Pilih paket ATV</option>
                 {packages.map((pkg) => (
                   <option key={pkg} value={pkg}>
                     {pkg}
                   </option>
                 ))}
               </select>
-              {errors.paket && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.paket}</p>}
+              {errors.paket && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.paket}</p>}
             </div>
 
-            {/* Tanggal & Jumlah */}
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-5">
               <div>
-                <label
-                  htmlFor="tanggal"
-                  className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-                >
-                  <Calendar className="w-4 h-4 text-amber-400" />
-                  Tanggal Sewa <span className="text-red-400">*</span>
-                </label>
+                <label htmlFor="tanggal" className={labelClass}>Tanggal</label>
                 <input
                   type="date"
                   id="tanggal"
@@ -333,94 +402,103 @@ export default function BookingForm() {
                   onBlur={() => handleBlur("tanggal")}
                   required
                   min={minDate || undefined}
-                  className={`w-full bg-gray-950 border focus:ring-2 text-white rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base ${errors.tanggal ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
+                  className={`${inputClass(errors.tanggal)} h-[50px] sm:h-[54px]`}
                 />
-                {errors.tanggal && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.tanggal}</p>}
+                {errors.tanggal && <p className="text-red-600 text-xs mt-1.5 font-medium">{errors.tanggal}</p>}
               </div>
 
               <div>
-                <label
-                  htmlFor="jumlah"
-                  className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-                >
-                  <Hash className="w-4 h-4 text-amber-400" />
-                  Jumlah Unit ATV
-                </label>
-                <input
-                  type="number"
-                  id="jumlah"
-                  name="jumlah"
-                  value={form.jumlah}
-                  onChange={handleChange}
-                  min="1"
-                  max="30"
-                  className="w-full bg-gray-950 border border-white/15 focus:border-[#b51b41] focus:ring-2 focus:ring-red-900/30 text-white rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base"
-                />
+                <label htmlFor="jumlah" className={labelClass}>Jumlah Unit</label>
+                <div className="flex items-center justify-between h-[50px] sm:h-[54px] border border-gray-300 rounded-xl px-1.5 bg-white">
+                  <button
+                    type="button"
+                    onClick={() => setQty(qty - 1)}
+                    aria-label="Kurangi jumlah unit"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors"
+                  >
+                    &minus;
+                  </button>
+                  <input
+                    type="number"
+                    id="jumlah"
+                    name="jumlah"
+                    value={form.jumlah}
+                    onChange={handleChange}
+                    min="1"
+                    max="30"
+                    className="w-16 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setQty(qty + 1)}
+                    aria-label="Tambah jumlah unit"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors"
+                  >
+                    +
+                  </button>
+                </div>
               </div>
             </div>
 
-            {/* Catatan */}
             <div>
-              <label
-                htmlFor="catatan"
-                className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
-              >
-                <FileText className="w-4 h-4 text-amber-400" />
-                Catatan / Request Khusus (opsional)
+              <label htmlFor="catatan" className={labelClass}>
+                Catatan <span className="font-medium text-gray-400">(opsional)</span>
               </label>
+              <div className="flex flex-wrap gap-2 mb-2.5">
+                {notePresets.map((preset) => (
+                  <button
+                    key={preset}
+                    type="button"
+                    onClick={() => toggleNotePreset(preset)}
+                    className="text-xs font-semibold text-gray-700 bg-gray-50 hover:bg-gray-100 border border-gray-300 rounded-full px-3.5 py-1.5 transition-colors cursor-pointer"
+                  >
+                    {preset}
+                  </button>
+                ))}
+              </div>
               <textarea
                 id="catatan"
                 name="catatan"
                 value={form.catatan}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Contoh: Rombongan 6 orang, request dokumentasi foto..."
-                className="w-full bg-gray-950 border border-white/15 focus:border-[#b51b41] focus:ring-2 focus:ring-red-900/30 text-white placeholder-gray-600 rounded-xl px-4 py-3 outline-none transition-all duration-200 resize-none text-base"
+                placeholder="Contoh: Rombongan 6 orang, request dokumentasi foto"
+                className={`${inputBase} border-gray-300 focus:border-[#1c1c1c] resize-none`}
               />
             </div>
 
-            {/* Submit Button */}
+            <div className="flex items-center justify-between bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 sm:px-5 sm:py-4">
+              <span className="text-xs sm:text-sm text-gray-500 font-semibold">
+                Estimasi total (bayar di lokasi)
+              </span>
+              <strong className={unitPrice ? "text-lg sm:text-xl font-extrabold text-[#1c1c1c]" : "text-xs sm:text-sm font-semibold text-gray-400"}>
+                {estimate}
+              </strong>
+            </div>
+
             <button
               type="submit"
               disabled={isBlocked}
-              className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-black text-base sm:text-lg transition-all duration-300 ${
+              className={`w-full flex items-center justify-center gap-2.5 py-4 rounded-xl font-extrabold text-base sm:text-lg transition-colors duration-200 ${
                 !isBlocked
-                  ? "bg-green-600 hover:bg-green-500 active:scale-[0.98] text-white shadow-xl shadow-green-600/30"
-                  : "bg-gray-800 text-gray-500 cursor-not-allowed"
+                  ? "bg-[#1c1c1c] hover:bg-black text-white cursor-pointer"
+                  : "bg-gray-200 text-gray-400 cursor-not-allowed"
               }`}
             >
               {submitted ? (
                 <>
-                  <svg
-                    className="animate-spin w-5 h-5"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                  >
-                    <circle
-                      className="opacity-25"
-                      cx="12"
-                      cy="12"
-                      r="10"
-                      stroke="currentColor"
-                      strokeWidth="4"
-                    />
-                    <path
-                      className="opacity-75"
-                      fill="currentColor"
-                      d="M4 12a8 8 0 018-8v8H4z"
-                    />
+                  <svg className="animate-spin w-5 h-5" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
                   </svg>
-                  Menghubungkan ke WhatsApp...
+                  Menyimpan booking...
                 </>
               ) : cooldown > 0 ? (
-                <>
-                  <ShieldCheck className="w-5 h-5" />
-                  Silakan tunggu {cooldown} detik...
-                </>
+                <>Silakan tunggu {cooldown} detik...</>
               ) : (
                 <>
-                  <Send className="w-5 h-5" />
-                  Kirim Booking via WhatsApp
+                  <WhatsAppIcon className="w-5 h-5 fill-current" />
+                  <span>Kirim Booking via WhatsApp</span>
                 </>
               )}
             </button>

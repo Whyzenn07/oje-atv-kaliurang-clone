@@ -62,7 +62,15 @@ export async function POST(request: NextRequest) {
   // ─── Layer 5: Parse Body JSON ─────────────────────────────────────────────
   let body: unknown;
   try {
-    body = await request.json();
+    // Baca sebagai teks agar ukuran aktual dicek (header Content-Length bisa dihilangkan)
+    const raw = await request.text();
+    if (Buffer.byteLength(raw, "utf8") > MAX_BODY_BYTES) {
+      return NextResponse.json(
+        { success: false, error: "Request terlalu besar." },
+        { status: 413 }
+      );
+    }
+    body = JSON.parse(raw);
   } catch {
     return NextResponse.json(
       { success: false, error: "Format request tidak valid." },

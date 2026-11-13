@@ -23,7 +23,8 @@ let globalCount = 0;
 let globalResetAt = Date.now() + 60 * 60 * 1000;
 
 const MAX_REQUESTS_PER_IP = 3;    // maks booking per IP per jam
-const MAX_REQUESTS_GLOBAL  = 30;  // maks booking total per jam (anti-DDoS)
+const MAX_REQUESTS_GLOBAL  = 60;  // maks booking total per jam (anti-DDoS, cukup longgar agar pelanggan sah tidak terkunci)
+const CLEANUP_THRESHOLD = 500;    // bersihkan store jika entry melebihi ini
 const WINDOW_MS = 60 * 60 * 1000; // 1 jam dalam milidetik
 
 /** Ukuran body maksimum yang diizinkan (8 KB) — dipakai di route.ts */
@@ -59,6 +60,8 @@ export function extractTrustedIp(
  */
 export function isRateLimited(ip: string): boolean {
   const now = Date.now();
+
+  if (store.size > CLEANUP_THRESHOLD) cleanupRateLimitStore();
 
   // ─── Cek global flood limit dulu ────────────────────────────────────────
   if (now > globalResetAt) {

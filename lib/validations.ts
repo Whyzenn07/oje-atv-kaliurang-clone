@@ -15,7 +15,7 @@ export const BookingSchema = z.object({
     .string()
     .min(2, "Nama minimal 2 karakter")
     .max(100, "Nama maksimal 100 karakter")
-    .regex(/^[a-zA-Z\s\-.]+$/, "Nama hanya boleh huruf, spasi, titik, dan strip"),
+    .regex(/^[\p{L}\s\-.]+$/u, "Nama hanya boleh huruf, spasi, titik, dan strip"),
 
   paket: z.enum(VALID_PACKAGES, {
     error: "Paket tidak valid",

@@ -32,6 +32,23 @@ const MAX_EMAILS_PER_MINUTE = 8;
 // ─── Deduplication Guard ───────────────────────────────────────────────────
 // Booking dengan nama+tanggal sama dalam 5 menit hanya kirim 1 email
 const recentBookings = new Map<string, number>(); // key => timestamp
+
+/** Escape karakter HTML agar input pengguna tampil sebagai teks biasa */
+function esc(value: string): string {
+  const map: Record<string, string> = {
+    "&": "&amp;",
+    "<": "&lt;",
+    ">": "&gt;",
+    '"': "&quot;",
+    "'": "&#39;",
+  };
+  return value.replace(/[&<>"']/g, (ch) => map[ch]);
+}
+
+/** Hilangkan line break agar aman dipakai di subject email */
+function oneLine(value: string): string {
+  return value.replace(/[\r\n]+/g, " ");
+}
 const DEDUP_WINDOW_MS = 5 * 60_000; // 5 menit
 
 function isEmailAllowed(dedupeKey: string): { allowed: boolean; reason?: string } {
@@ -74,7 +91,7 @@ export async function sendBookingNotification(
   booking: BookingInput & { id: string; created_at: string }
 ): Promise<{ success: boolean; error?: string }> {
   // ─── Guard: Email rate limit + deduplication ─────────────────────────────
-  const dedupeKey = `${booking.nama.toLowerCase().trim()}|${booking.tanggal}`;
+  const dedupeKey = `${booking.nama.toLowerCase().trim()}|${booking.tanggal}|${booking.paket}|${booking.jumlah}`;
   const guard = isEmailAllowed(dedupeKey);
   if (!guard.allowed) {
     console.warn("[Mailer] Email diblokir:", guard.reason);
@@ -126,11 +143,11 @@ export async function sendBookingNotification(
     <div class="body">
       <div class="field">
         <div class="label">&#x1F464; Nama Customer</div>
-        <div class="value">${booking.nama}</div>
+        <div class="value">${esc(booking.nama)}</div>
       </div>
       <div class="field">
         <div class="label">&#x1F3AF; Paket Dipilih</div>
-        <div class="value">${booking.paket}</div>
+        <div class="value">${esc(booking.paket)}</div>
       </div>
       <div class="field">
         <div class="label">&#x1F4C5; Tanggal Sewa</div>
@@ -143,7 +160,7 @@ export async function sendBookingNotification(
       ${booking.catatan ? `
       <div class="field">
         <div class="label">&#x1F4DD; Catatan / Request</div>
-        <div class="value">${booking.catatan}</div>
+        <div class="value" style="white-space:pre-wrap">${esc(booking.catatan)}</div>
       </div>
       ` : ""}
       <div class="field">
@@ -171,7 +188,7 @@ export async function sendBookingNotification(
     const { error } = await getResend().emails.send({
       from: `OJE ATV Booking <${FROM_EMAIL}>`,
       to: [ADMIN_EMAIL],
-      subject: `[BOOKING BARU] ${booking.nama} — ${tanggalFormatted} — ${booking.paket}`,
+      subject: `[BOOKING BARU] ${oneLine(booking.nama)} — ${tanggalFormatted} — ${oneLine(booking.paket)}`,
       html,
     });
 

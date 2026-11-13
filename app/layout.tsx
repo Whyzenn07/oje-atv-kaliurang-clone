@@ -11,7 +11,7 @@ export const viewport: Viewport = {
 export const metadata: Metadata = {
   title: "O.J.E – Atv Kaliurang Merapi | Petualangan Wisata ATV Jogja",
   description:
-    "Jelajahi Hutan, Sungai menggunakan ATV Kaliurang bersama keluarga, teman, atau orang terkasih Anda. ATV Single 300K, Boncengan +50K. Hubungi 081338330330.",
+    "Jelajahi Hutan, Sungai menggunakan ATV Kaliurang bersama keluarga, teman, atau orang terkasih Anda. ATV Single 300K, Boncengan +50K. Hubungi 0812-2698-3990.",
   keywords: [
     "OJE ATV Kaliurang",
     "ATV Kaliurang Merapi",
@@ -62,7 +62,7 @@ const jsonLd = {
   description:
     "Penyewaan dan tur petualangan ATV di Kaliurang Merapi Yogyakarta melintasi rute hutan, sungai, dan trek offroad menantang.",
   url: "https://ojeatvkaliurang.com",
-  telephone: "+6281338330330",
+  telephone: "+6281226983990",
   priceRange: "Rp 300.000 - Rp 350.000",
   image: "https://ojeatvkaliurang.com/images/ATV-KALIURANG-1.jpeg",
   address: {
@@ -81,17 +81,15 @@ const jsonLd = {
   openingHoursSpecification: [
     {
       "@type": "OpeningHoursSpecification",
-      dayOfWeek: [
-        "Monday",
-        "Tuesday",
-        "Wednesday",
-        "Thursday",
-        "Friday",
-        "Saturday",
-        "Sunday",
-      ],
-      opens: "00:00",
-      closes: "23:59",
+      dayOfWeek: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday"],
+      opens: "08:00",
+      closes: "17:00",
+    },
+    {
+      "@type": "OpeningHoursSpecification",
+      dayOfWeek: ["Saturday", "Sunday"],
+      opens: "07:00",
+      closes: "17:00",
     },
   ],
   sameAs: [

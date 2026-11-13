@@ -12,7 +12,6 @@ import FAQSection from "@/components/FAQSection";
 import LocationSection from "@/components/LocationSection";
 import FooterSection from "@/components/FooterSection";
 import FloatingWhatsApp from "@/components/FloatingWhatsApp";
-import MobileStickyBar from "@/components/MobileStickyBar";
 
 export default function Home() {
   return (
@@ -29,12 +28,8 @@ export default function Home() {
       <BookingForm />
       <FAQSection />
       <LocationSection />
-      {/* Extra bottom padding on mobile agar konten tidak tertutup sticky bar */}
-      <div className="pb-16 md:pb-0">
-        <FooterSection />
-      </div>
+      <FooterSection />
       <FloatingWhatsApp />
-      <MobileStickyBar />
     </main>
   );
 }

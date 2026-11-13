@@ -63,8 +63,11 @@ export default function BookingForm() {
   const errors: Record<string, string> = {};
   if (touched.nama && !form.nama.trim()) errors.nama = "Nama wajib diisi";
   else if (touched.nama && form.nama.trim().length < 2) errors.nama = "Nama minimal 2 karakter";
+  else if (touched.nama && !/^[\p{L}\s\-.]+$/u.test(form.nama.trim())) errors.nama = "Nama hanya boleh huruf, spasi, titik, dan strip";
   if (touched.whatsapp && !form.whatsapp.trim()) errors.whatsapp = "Nomor WhatsApp wajib diisi";
+  else if (touched.whatsapp && !/^[0-9+\-\s]+$/.test(form.whatsapp.trim())) errors.whatsapp = "Format nomor WhatsApp tidak valid";
   else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length < 9) errors.whatsapp = "Nomor WhatsApp minimal 9 digit";
+  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length > 15) errors.whatsapp = "Nomor WhatsApp maksimal 15 digit";
   if (touched.paket && !form.paket) errors.paket = "Pilih paket terlebih dahulu";
   if (touched.tanggal && !form.tanggal) errors.tanggal = "Pilih tanggal sewa";
   else if (touched.tanggal && minDate && form.tanggal < minDate) errors.tanggal = "Tanggal tidak boleh di masa lalu";
@@ -252,7 +255,7 @@ export default function BookingForm() {
     setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), MAX_UNITS)) }));
 
   return (
-    <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-hidden">
+    <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-clip">
       <div className="w-full max-w-3xl mx-auto px-4 sm:px-6 flex flex-col gap-6 sm:gap-8">
         {/* Section Header */}
         <div className="flex flex-col items-start sm:items-center text-left sm:text-center gap-2 sm:gap-3">
@@ -442,6 +445,7 @@ export default function BookingForm() {
                     name="jumlah"
                     value={form.jumlah}
                     onChange={handleChange}
+                    onBlur={() => setQty(parseInt(form.jumlah) || 1)}
                     min="1"
                     max={MAX_UNITS}
                     className="w-16 min-w-0 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"

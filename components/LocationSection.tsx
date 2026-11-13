@@ -113,7 +113,7 @@ export default function LocationSection() {
           {/* Right: Google Maps Embed */}
           <div className="w-full lg:flex-1 min-w-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl aspect-square sm:aspect-[4/3]">
             <iframe
-              src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.8!2d110.42861!3d-7.59972!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a5d8eb8b5c0e1%3A0x1234567890abcdef!2sKaliurang%2C%20Hargobinangun%2C%20Pakem%2C%20Sleman!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
+              src="https://maps.google.com/maps?q=-7.59972,110.42861+(OJE+ATV+Kaliurang)&hl=id&z=16&output=embed"
               width="100%"
               height="100%"
               style={{ border: 0 }}

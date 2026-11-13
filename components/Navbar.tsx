@@ -8,7 +8,9 @@ const navLinks = [
   { label: "Home", href: "#hero" },
   { label: "Profil", href: "#profil" },
   { label: "Harga", href: "#harga" },
+  { label: "Booking", href: "#booking" },
   { label: "Gallery", href: "#gallery" },
+  { label: "Lokasi", href: "#lokasi" },
   { label: "Kontak", href: "#kontak" },
 ];
 
@@ -21,7 +23,7 @@ export default function Navbar() {
     const onScroll = () => {
       setScrolled(window.scrollY > 20);
 
-      const sections = ["hero", "profil", "harga", "gallery", "kontak"];
+      const sections = ["hero", "profil", "harga", "booking", "gallery", "lokasi", "kontak"];
       for (const section of sections) {
         const el = document.getElementById(section);
         if (el) {
@@ -50,13 +52,10 @@ export default function Navbar() {
     const el = document.querySelector(href);
     if (el) {
       const offset = 70;
-      const bodyRect = document.body.getBoundingClientRect().top;
-      const elementRect = el.getBoundingClientRect().top;
-      const elementPosition = elementRect - bodyRect;
-      const offsetPosition = elementPosition - offset;
+      const offsetPosition = el.getBoundingClientRect().top + window.scrollY - offset;
 
       window.scrollTo({
-        top: href === "#hero" ? 0 : offsetPosition,
+        top: href === "#hero" ? 0 : Math.max(0, offsetPosition),
         behavior: "smooth",
       });
     }
@@ -64,13 +63,13 @@ export default function Navbar() {
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 navbar-safe-top ${
         scrolled || menuOpen
-          ? "bg-[#1c1c1c]/95 backdrop-blur-md shadow-xl py-2.5 sm:py-3"
-          : "bg-transparent py-3 sm:py-5"
+          ? "bg-[#1c1c1c]/95 backdrop-blur-md shadow-xl pb-2.5 sm:py-3"
+          : "bg-transparent pb-3 sm:py-5"
       }`}
     >
-      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
+      <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
         {/* Logo */}
         <button
           onClick={() => scrollTo("#hero")}
@@ -83,8 +82,8 @@ export default function Navbar() {
           />
         </button>
 
-        {/* Center: Desktop Navigation */}
-        <ul className="hidden md:flex items-center gap-6 lg:gap-10">
+        {/* Center: Desktop Navigation (Flexbox with responsive spacing) */}
+        <ul className="hidden md:flex items-center gap-4 lg:gap-8 xl:gap-10">
           {navLinks.map((link) => {
             const isActive =
               (link.href === "#hero" && activeSection === "hero") ||
@@ -94,7 +93,7 @@ export default function Navbar() {
               <li key={link.href}>
                 <button
                   onClick={() => scrollTo(link.href)}
-                  className={`text-sm lg:text-base font-bold transition-colors duration-200 drop-shadow ${
+                  className={`whitespace-nowrap text-sm lg:text-base font-bold transition-colors duration-200 drop-shadow ${
                     isActive
                       ? "text-[#f6a440]"
                       : "text-white hover:text-[#f6a440]"
@@ -108,7 +107,7 @@ export default function Navbar() {
         </ul>
 
         {/* Right: Desktop Call Us Button */}
-        <div className="hidden md:flex items-center gap-3 group">
+        <div className="hidden md:flex items-center gap-3 shrink-0 group">
           <a
             href={`tel:${CONTACT.PHONE_HREF}`}
             className="w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-[#f6a440] hover:bg-[#e0912f] text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 shrink-0 call-pulse phone-ring-hover"
@@ -148,13 +147,15 @@ export default function Navbar() {
         </div>
       </nav>
 
-      {/* Mobile menu dropdown with smooth accordion */}
+      {/* Mobile menu dropdown with smooth Flexbox accordion & unconstrained height */}
       <div
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out ${
-          menuOpen ? "max-h-96 opacity-100 mt-2 border-t border-white/10" : "max-h-0 opacity-0"
+        className={`md:hidden transition-all duration-300 ease-in-out ${
+          menuOpen
+            ? "max-h-[calc(100dvh-76px)] overflow-y-auto overscroll-contain opacity-100 mt-2 border-t border-white/10"
+            : "max-h-0 overflow-hidden opacity-0"
         }`}
       >
-        <div className="px-4 py-3 space-y-1 bg-[#1c1c1c]/98 backdrop-blur-xl">
+        <div className="px-4 py-3 flex flex-col gap-1 bg-[#1c1c1c]/98 backdrop-blur-xl">
           {navLinks.map((link) => {
             const isActive =
               (link.href === "#hero" && activeSection === "hero") ||

@@ -83,7 +83,11 @@ async function exportToCSV() {
       item.status,
       dateFormatted,
     ]
-      .map((val) => `"${String(val).replace(/"/g, '""')}"`)
+      .map((val) => {
+        const str = String(val);
+        const safeStr = /^[=+\-@\t\r]/.test(str.trimStart()) ? `'${str}` : str;
+        return `"${safeStr.replace(/"/g, '""')}"`;
+      })
       .join(",");
   });
 

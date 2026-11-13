@@ -167,6 +167,34 @@ export async function POST(request: NextRequest) {
       bookingId = humanBookingCode;
       createdAt = new Date().toISOString();
     } else {
+      // Post-insert guard untuk mencegah race condition (TOCTOU) kuota 15 unit/hari
+      const { data: postCheck } = await supabase
+        .from("bookings")
+        .select("id, jumlah, created_at")
+        .eq("tanggal", data.tanggal)
+        .neq("status", "CANCELLED")
+        .order("created_at", { ascending: true });
+
+      const totalAfterInsert = (postCheck || []).reduce(
+        (sum, item) => sum + (item.jumlah || 0),
+        0
+      );
+
+      if (totalAfterInsert > MAX_ATV_PER_DAY) {
+        await supabase.from("bookings").delete().eq("id", inserted.id);
+        const remainingBefore = Math.max(0, MAX_ATV_PER_DAY - (totalAfterInsert - data.jumlah));
+        return NextResponse.json(
+          {
+            success: false,
+            error:
+              remainingBefore > 0
+                ? `Slot ATV untuk tanggal tersebut tersisa ${remainingBefore} unit. Silakan kurangi unit atau pilih tanggal lain.`
+                : "Mohon maaf, kuota unit ATV untuk tanggal tersebut baru saja penuh. Silakan pilih tanggal lain.",
+          },
+          { status: 409 }
+        );
+      }
+
       bookingId = inserted.id;
       createdAt = inserted.created_at;
     }

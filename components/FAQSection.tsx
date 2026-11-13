@@ -75,14 +75,14 @@ export default function FAQSection() {
           <div className="w-16 h-1 bg-[#b51b41] mx-auto mt-4 rounded" />
         </div>
 
-        {/* FAQ List */}
-        <div className="space-y-3">
+        {/* FAQ List (Flexbox) */}
+        <div className="flex flex-col gap-3">
           {faqs.map((faq, idx) => {
             const isOpen = openIdx === idx;
             return (
               <div
                 key={idx}
-                className={`bg-white rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md ${
+                className={`bg-white rounded-2xl border transition-all duration-300 shadow-sm hover:shadow-md flex flex-col ${
                   isOpen
                     ? "border-[#b51b41]/30 shadow-md"
                     : "border-gray-100"
@@ -112,15 +112,13 @@ export default function FAQSection() {
                   </div>
                 </button>
 
-                {/* Answer Content — CSS Grid accordion */}
+                {/* Answer Content — Pure Flexbox accordion */}
                 <div className={`faq-content ${isOpen ? "faq-open" : ""}`}>
-                  <div>
-                    <div className="px-5 sm:px-7 pb-5 sm:pb-6 pt-0">
-                      <div className="w-full h-px bg-gray-100 mb-4" />
-                      <p className="text-gray-600 text-sm sm:text-[15px] leading-relaxed">
-                        {faq.answer}
-                      </p>
-                    </div>
+                  <div className="px-5 sm:px-7 pb-5 sm:pb-6 pt-0 flex flex-col">
+                    <div className="w-full h-px bg-gray-100 mb-4" />
+                    <p className="text-gray-600 text-sm sm:text-[15px] leading-relaxed">
+                      {faq.answer}
+                    </p>
                   </div>
                 </div>
               </div>

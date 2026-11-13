@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS public.bookings (
   nama        VARCHAR(100)  NOT NULL,
   paket       VARCHAR(100)  NOT NULL,
   tanggal     DATE          NOT NULL,
-  jumlah      INTEGER       NOT NULL CHECK (jumlah >= 1 AND jumlah <= 30),
+  jumlah      INTEGER       NOT NULL CHECK (jumlah >= 1 AND jumlah <= 15),
   catatan     TEXT,
   status      VARCHAR(20)   NOT NULL DEFAULT 'PENDING'
                             CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED')),

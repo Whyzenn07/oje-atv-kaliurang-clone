@@ -8,8 +8,8 @@ const cards = [
   },
   {
     icon: "/images/Web-developement-services-icon.png",
-    title: "Layanan 24",
-    desc: "Kami adalah satu-satunya layanan 24 jam yang tersedia 7 hari seminggu, sehingga Anda dapat memesan kapan saja.",
+    title: "Reservasi 24 Jam",
+    desc: "Layanan pemesanan online tersedia 24 jam setiap hari (operasional trek 07:00 – 17:00 WIB), sehingga Anda dapat memesan kapan saja.",
   },
   {
     icon: "/images/UI-UX-design-services-icon.png",

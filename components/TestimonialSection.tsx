@@ -123,7 +123,7 @@ export default function TestimonialSection() {
 
         {/* Carousel Viewport Container */}
         <div
-          className="relative overflow-hidden"
+          className="relative overflow-hidden touch-pan-y"
           onMouseEnter={() => setIsPaused(true)}
           onMouseLeave={() => setIsPaused(false)}
           onTouchStart={onTouchStart}
@@ -211,7 +211,7 @@ export default function TestimonialSection() {
                 key={i}
                 onClick={() => setCurrentIdx(i)}
                 aria-label={`Slide ${i + 1}`}
-                className={`transition-all duration-500 rounded-full ${
+                className={`no-min-size transition-all duration-500 rounded-full block ${
                   i === currentIdx
                     ? "bg-[#b51b41] w-8 h-2.5 shadow-md shadow-red-900/30"
                     : "bg-gray-300 hover:bg-gray-400 w-2.5 h-2.5"

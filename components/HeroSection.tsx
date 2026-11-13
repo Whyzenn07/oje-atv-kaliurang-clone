@@ -89,7 +89,7 @@ export default function HeroSection() {
   return (
     <section
       id="hero"
-      className="relative min-h-[100dvh] flex items-center justify-center overflow-hidden select-none"
+      className="relative min-h-[100dvh] flex flex-col items-center justify-center overflow-hidden select-none touch-pan-y"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onTouchStart={onTouchStart}
@@ -137,16 +137,16 @@ export default function HeroSection() {
         </svg>
       </div>
 
-      {/* Left Frosted Glass Floating Social Icons (TikTok & Instagram) */}
-      <div className="absolute left-3 sm:left-8 top-1/2 -translate-y-1/2 z-30 flex flex-col gap-3 sm:gap-4">
+      {/* Left Frosted Glass Floating Social Icons (Desktop left column, safe-positioned Flexbox row below CTA on mobile) */}
+      <div className="hidden sm:flex absolute left-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-4">
         <a
           href="https://www.tiktok.com/@oje_atvkaliurang"
           target="_blank"
           rel="noopener noreferrer"
           aria-label="TikTok OJE ATV Kaliurang"
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/30 hover:bg-black hover:border-black hover:shadow-[0_0_20px_rgba(255,0,80,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-1 group"
+          className="w-12 h-12 rounded-full bg-white/30 hover:bg-black hover:border-black hover:shadow-[0_0_20px_rgba(255,0,80,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-1 group"
         >
-          <TiktokIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+          <TiktokIcon className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
         </a>
 
         <a
@@ -154,9 +154,9 @@ export default function HeroSection() {
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram OJE ATV Kaliurang"
-          className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-white/30 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:border-transparent hover:shadow-[0_0_20px_rgba(225,48,108,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-2 group"
+          className="w-12 h-12 rounded-full bg-white/30 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:border-transparent hover:shadow-[0_0_20px_rgba(225,48,108,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-2 group"
         >
-          <InstagramIcon className="w-4 h-4 sm:w-5 sm:h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
+          <InstagramIcon className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
         </a>
       </div>
 
@@ -178,7 +178,7 @@ export default function HeroSection() {
       </button>
 
       {/* Main Hero Center Content with Slide Entrance Effect */}
-      <div className="relative z-20 text-center px-5 sm:px-6 max-w-4xl mx-auto pt-24 sm:pt-32 pb-24">
+      <div className="relative z-20 text-center px-5 sm:px-6 max-w-4xl mx-auto pt-24 sm:pt-32 pb-20 sm:pb-24 flex flex-col items-center">
         {/* Subtitle text */}
         <p
           key={`sub-${currentSlide}`}
@@ -206,7 +206,7 @@ export default function HeroSection() {
         </p>
 
         {/* Action Button: PROMO */}
-        <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
+        <div className="w-full sm:w-auto flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
           <a
             href={WA_ORDER_LINK}
             target="_blank"
@@ -235,6 +235,28 @@ export default function HeroSection() {
           >
             Lihat Paket Harga
           </button>
+        </div>
+
+        {/* Mobile Social Icons (Android & iOS — clean Flexbox row, zero overlap) */}
+        <div className="flex sm:hidden items-center justify-center gap-3 mt-5">
+          <a
+            href="https://www.tiktok.com/@oje_atvkaliurang"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="TikTok OJE ATV Kaliurang"
+            className="w-11 h-11 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-lg active:scale-95"
+          >
+            <TiktokIcon className="w-4 h-4 text-white" />
+          </a>
+          <a
+            href="https://www.instagram.com/oje_atvkaliurang/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Instagram OJE ATV Kaliurang"
+            className="w-11 h-11 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-lg active:scale-95"
+          >
+            <InstagramIcon className="w-4 h-4 text-white" />
+          </a>
         </div>
       </div>
 

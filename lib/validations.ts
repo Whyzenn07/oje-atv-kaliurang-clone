@@ -19,10 +19,11 @@ export const BookingSchema = z.object({
 
   whatsapp: z
     .string()
-    .min(9, "Nomor WhatsApp minimal 9 digit")
-    .max(16, "Nomor WhatsApp maksimal 16 digit")
     .regex(/^[0-9+\-\s]+$/, "Format nomor WhatsApp tidak valid")
-    .transform((val) => val.replace(/[^0-9]/g, "")),
+    .transform((val) => val.replace(/[^0-9]/g, ""))
+    .refine((digits) => digits.length >= 9, "Nomor WhatsApp minimal 9 digit")
+    .refine((digits) => digits.length <= 15, "Nomor WhatsApp maksimal 15 digit")
+    .transform((digits) => (digits.startsWith("0") ? `62${digits.slice(1)}` : digits)),
 
   paket: z.enum(VALID_PACKAGES, {
     error: "Paket tidak valid",

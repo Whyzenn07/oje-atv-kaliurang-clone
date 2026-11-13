@@ -22,26 +22,21 @@
 
 html {
   scroll-behavior: smooth;
-  /* Safe-area padding untuk iPhone X+ (notch & home indicator) */
-  padding:
-    env(safe-area-inset-top, 0px)
-    env(safe-area-inset-right, 0px)
-    env(safe-area-inset-bottom, 0px)
-    env(safe-area-inset-left, 0px);
+  font-size: 16px;
 }
 
-html, body {
+body {
   background-color: #ffffff;
   color: #1a1a1a;
   font-family: "Manrope", "Montserrat", "Inter", system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  overflow-x: hidden;
-  max-width: 100vw;
-  /* Prevent momentum scroll jank */
-  overscroll-behavior-y: none;
-  /* Smooth scroll everywhere */
-  scroll-behavior: smooth;
+  /* overflow-x: clip avoids creating a dual scroll container that freezes mobile scroll */
+  overflow-x: clip;
+}
+
+.navbar-safe-top {
+  padding-top: max(0.75rem, env(safe-area-inset-top, 0px));
 }
 
 /* Offset anchor scroll for fixed navbar height */
@@ -207,18 +202,19 @@ nav li button,
 }
 
 /* ─────────────────────────────────────────────────────────────
-   FAQ ACCORDION
+   FAQ ACCORDION (Pure Flexbox)
 ───────────────────────────────────────────────────────────── */
 .faq-content {
-  display: grid;
-  grid-template-rows: 0fr;
-  transition: grid-template-rows 0.35s ease-out;
+  display: flex;
+  flex-direction: column;
+  max-height: 0;
+  opacity: 0;
+  overflow: hidden;
+  transition: max-height 0.35s ease-out, opacity 0.25s ease-out;
 }
 .faq-content.faq-open {
-  grid-template-rows: 1fr;
-}
-.faq-content > div {
-  overflow: hidden;
+  max-height: 600px;
+  opacity: 1;
 }
 
 /* ─────────────────────────────────────────────────────────────
@@ -258,40 +254,15 @@ input[type="date"]::-webkit-calendar-picker-indicator {
 }
 
 /* ─────────────────────────────────────────────────────────────
-   MOBILE STICKY CTA BAR
-   Tampil di bawah layar mobile saat scroll, tersembunyi di desktop
-───────────────────────────────────────────────────────────── */
-.mobile-sticky-cta {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  z-index: 40;
-  display: flex;
-  padding-bottom: env(safe-area-inset-bottom, 0px);
-  background: #1c1c1c;
-  border-top: 1px solid rgba(255,255,255,0.08);
-  box-shadow: 0 -4px 20px rgba(0,0,0,0.4);
-}
-@media (min-width: 768px) {
-  .mobile-sticky-cta { display: none; }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   FLOATING WA BUTTON — push up saat mobile sticky bar tampil
+   FLOATING WHATSAPP & SCROLL-TO-TOP SAFE AREA (iOS & Android)
 ───────────────────────────────────────────────────────────── */
 @media (max-width: 767px) {
   .wa-float-btn {
-    bottom: calc(64px + env(safe-area-inset-bottom, 8px)) !important;
+    bottom: max(1.25rem, calc(0.75rem + env(safe-area-inset-bottom, 0px)));
+    right: max(1rem, calc(0.75rem + env(safe-area-inset-right, 0px)));
   }
-}
-
-/* ─────────────────────────────────────────────────────────────
-   SCROLL-TO-TOP — push up di atas WA button di mobile
-───────────────────────────────────────────────────────────── */
-@media (max-width: 767px) {
   .scroll-top-fixed {
-    bottom: calc(130px + env(safe-area-inset-bottom, 8px)) !important;
+    bottom: max(5.5rem, calc(4.75rem + env(safe-area-inset-bottom, 0px)));
   }
 }
 

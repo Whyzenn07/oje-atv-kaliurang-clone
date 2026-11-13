@@ -110,6 +110,10 @@ export async function sendBookingNotification(
     timeZone: "Asia/Jakarta",
   });
 
+  const normalizedWa = booking.whatsapp.startsWith("0")
+    ? `62${booking.whatsapp.slice(1)}`
+    : booking.whatsapp;
+
   const html = `
 <!DOCTYPE html>
 <html lang="id">
@@ -148,8 +152,8 @@ export async function sendBookingNotification(
       <div class="field">
         <div class="label">&#x1F4F1; WhatsApp Customer</div>
         <div class="value">
-          <a href="https://wa.me/${esc(booking.whatsapp)}?text=${encodeURIComponent('Halo Kak ' + booking.nama + ', kami dari OJE ATV Kaliurang terkait booking #' + booking.id.substring(0, 8).toUpperCase())}" style="color: #25D366; text-decoration: none; font-weight: bold;">
-            +${esc(booking.whatsapp)} (Klik untuk Chat WA) &rarr;
+          <a href="https://wa.me/${esc(normalizedWa)}?text=${encodeURIComponent('Halo Kak ' + booking.nama + ', kami dari OJE ATV Kaliurang terkait booking #' + booking.id.substring(0, 8).toUpperCase())}" style="color: #25D366; text-decoration: none; font-weight: bold;">
+            +${esc(normalizedWa)} (Klik untuk Chat WA) &rarr;
           </a>
         </div>
       </div>

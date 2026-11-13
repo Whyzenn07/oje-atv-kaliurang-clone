@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import { Send, User, Calendar, Bike, Hash, FileText, ShieldCheck, CheckCircle2 } from "lucide-react";
+import { Send, User, Calendar, Bike, Hash, FileText, ShieldCheck, CheckCircle2, Phone } from "lucide-react";
 import { CONTACT } from "@/lib/constants";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
@@ -23,6 +23,7 @@ function sanitize(str: string, maxLen = 200): string {
 export default function BookingForm() {
   const [form, setForm] = useState({
     nama: "",
+    whatsapp: "",
     paket: "",
     tanggal: "",
     jumlah: "1",
@@ -41,6 +42,8 @@ export default function BookingForm() {
   const errors: Record<string, string> = {};
   if (touched.nama && !form.nama.trim()) errors.nama = "Nama wajib diisi";
   else if (touched.nama && form.nama.trim().length < 2) errors.nama = "Nama minimal 2 karakter";
+  if (touched.whatsapp && !form.whatsapp.trim()) errors.whatsapp = "Nomor WhatsApp wajib diisi";
+  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length < 9) errors.whatsapp = "Nomor WhatsApp minimal 9 digit";
   if (touched.paket && !form.paket) errors.paket = "Pilih paket terlebih dahulu";
   if (touched.tanggal && !form.tanggal) errors.tanggal = "Pilih tanggal sewa";
   else if (touched.tanggal && minDate && form.tanggal < minDate) errors.tanggal = "Tanggal tidak boleh di masa lalu";
@@ -71,6 +74,7 @@ export default function BookingForm() {
   const formatWAMessage = (bookingCode?: string) => {
     // Sanitasi semua input sebelum masuk ke pesan WA
     const safeName = sanitize(form.nama, 100);
+    const safeWA = sanitize(form.whatsapp, 20);
     const safePaket = sanitize(form.paket, 100);
     const safeCatatan = sanitize(form.catatan, 300);
     const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
@@ -80,6 +84,7 @@ export default function BookingForm() {
       "---------------------------------",
       bookingCode ? `🆔 *ID Booking*: ${bookingCode}` : null,
       `👤 *Nama*: ${safeName}`,
+      `📱 *No. WhatsApp*: ${safeWA}`,
       `🎯 *Paket*: ${safePaket}`,
       `📅 *Tanggal Sewa*: ${form.tanggal}`,
       `🔢 *Jumlah Unit*: ${safeJumlah} unit`,
@@ -107,7 +112,7 @@ export default function BookingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama || !form.paket || !form.tanggal) return;
+    if (!form.nama || !form.whatsapp || !form.paket || !form.tanggal) return;
     if (cooldown > 0) return;
 
     setSubmitted(true);
@@ -121,6 +126,7 @@ export default function BookingForm() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           nama: sanitize(form.nama, 100),
+          whatsapp: sanitize(form.whatsapp, 20),
           paket: form.paket,
           tanggal: form.tanggal,
           jumlah: Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30),
@@ -137,7 +143,9 @@ export default function BookingForm() {
       }
 
       // ── Step 2: Siapkan pesan WhatsApp SEBELUM reset form ───────────────
-      const bookingCode = result.bookingId
+      const bookingCode = result.bookingCode
+        ? `#${result.bookingCode}`
+        : result.bookingId
         ? `#${result.bookingId.substring(0, 8).toUpperCase()}`
         : "";
       const text = encodeURIComponent(formatWAMessage(bookingCode));
@@ -145,11 +153,11 @@ export default function BookingForm() {
 
       setLastWaUrl(waUrl);
       setSuccessMsg(
-        `Booking ${bookingCode} berhasil dicatat di sistem! Admin kami telah menerima notifikasi.`
+        `Booking ${bookingCode} berhasil dicatat di sistem! Kuota terkonfirmasi & admin kami telah menerima notifikasi.`
       );
 
       // Reset form
-      setForm({ nama: "", paket: "", tanggal: "", jumlah: "1", catatan: "" });
+      setForm({ nama: "", whatsapp: "", paket: "", tanggal: "", jumlah: "1", catatan: "" });
 
       // Coba buka WhatsApp otomatis (jika diizinkan popup browser)
       setTimeout(() => {
@@ -169,7 +177,7 @@ export default function BookingForm() {
     }
   };
 
-  const isValid = form.nama.trim() && form.paket && form.tanggal;
+  const isValid = form.nama.trim() && form.whatsapp.trim() && form.paket && form.tanggal;
   const hasErrors = Object.keys(errors).length > 0;
   const isBlocked = !isValid || hasErrors || submitted || cooldown > 0;
 
@@ -251,6 +259,29 @@ export default function BookingForm() {
                 className={`w-full bg-gray-950 border focus:ring-2 text-white placeholder-gray-600 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base ${errors.nama ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
               />
               {errors.nama && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.nama}</p>}
+            </div>
+
+            {/* Nomor WhatsApp */}
+            <div>
+              <label
+                htmlFor="whatsapp"
+                className="flex items-center gap-2 text-xs sm:text-sm font-bold text-gray-300 mb-1.5 sm:mb-2"
+              >
+                <Phone className="w-4 h-4 text-amber-400" />
+                Nomor WhatsApp Anda <span className="text-red-400">*</span>
+              </label>
+              <input
+                type="tel"
+                id="whatsapp"
+                name="whatsapp"
+                value={form.whatsapp}
+                onChange={handleChange}
+                onBlur={() => handleBlur("whatsapp")}
+                placeholder="Contoh: 081234567890"
+                required
+                className={`w-full bg-gray-950 border focus:ring-2 text-white placeholder-gray-600 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-all duration-200 text-base ${errors.whatsapp ? "border-red-500 focus:border-red-500 focus:ring-red-500/30" : "border-white/15 focus:border-[#b51b41] focus:ring-red-900/30"}`}
+              />
+              {errors.whatsapp && <p className="text-red-400 text-xs mt-1.5 font-medium">{errors.whatsapp}</p>}
             </div>
 
             {/* Pilihan Paket */}

@@ -146,6 +146,14 @@ export async function sendBookingNotification(
         <div class="value">${esc(booking.nama)}</div>
       </div>
       <div class="field">
+        <div class="label">&#x1F4F1; WhatsApp Customer</div>
+        <div class="value">
+          <a href="https://wa.me/${esc(booking.whatsapp)}?text=${encodeURIComponent('Halo Kak ' + booking.nama + ', kami dari OJE ATV Kaliurang terkait booking #' + booking.id.substring(0, 8).toUpperCase())}" style="color: #25D366; text-decoration: none; font-weight: bold;">
+            +${esc(booking.whatsapp)} (Klik untuk Chat WA) &rarr;
+          </a>
+        </div>
+      </div>
+      <div class="field">
         <div class="label">&#x1F3AF; Paket Dipilih</div>
         <div class="value">${esc(booking.paket)}</div>
       </div>

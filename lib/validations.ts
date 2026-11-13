@@ -17,6 +17,13 @@ export const BookingSchema = z.object({
     .max(100, "Nama maksimal 100 karakter")
     .regex(/^[\p{L}\s\-.]+$/u, "Nama hanya boleh huruf, spasi, titik, dan strip"),
 
+  whatsapp: z
+    .string()
+    .min(9, "Nomor WhatsApp minimal 9 digit")
+    .max(16, "Nomor WhatsApp maksimal 16 digit")
+    .regex(/^[0-9+\-\s]+$/, "Format nomor WhatsApp tidak valid")
+    .transform((val) => val.replace(/[^0-9]/g, "")),
+
   paket: z.enum(VALID_PACKAGES, {
     error: "Paket tidak valid",
   }),

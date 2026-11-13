@@ -101,9 +101,50 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data;
 
-  // ─── Layer 7: Simpan ke Supabase (dengan graceful fallback jika paused/down) ─
+  // ─── Layer 7: Cek Kuota Unit per Tanggal (Maks 15 unit/hari) ───────────────
+  const MAX_ATV_PER_DAY = 15;
+  try {
+    const { data: existingBookings, error: quotaErr } = await supabase
+      .from("bookings")
+      .select("jumlah")
+      .eq("tanggal", data.tanggal)
+      .neq("status", "CANCELLED");
+
+    if (!quotaErr && existingBookings) {
+      const bookedUnits = existingBookings.reduce((sum, item) => sum + (item.jumlah || 0), 0);
+      if (bookedUnits + data.jumlah > MAX_ATV_PER_DAY) {
+        const remaining = Math.max(0, MAX_ATV_PER_DAY - bookedUnits);
+        return NextResponse.json(
+          {
+            success: false,
+            error: remaining > 0
+              ? `Slot ATV untuk tanggal tersebut tersisa ${remaining} unit. Silakan kurangi unit atau pilih tanggal lain.`
+              : "Mohon maaf, kuota unit ATV untuk tanggal tersebut sudah penuh. Silakan pilih tanggal lain.",
+          },
+          { status: 409 }
+        );
+      }
+    }
+  } catch (err) {
+    console.warn("[API/booking] Quota check warning:", err);
+  }
+
+  // ─── Layer 8: Simpan ke Supabase (dengan graceful fallback jika paused/down) ─
   let bookingId: string;
   let createdAt: string;
+
+  // Buat kode booking rapi, contoh: OJE-1120-A7K
+  const cleanDate = data.tanggal.replace(/-/g, "").slice(4); // MMDD
+  const randChars = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const humanBookingCode = `OJE-${cleanDate}-${randChars}`;
+
+  // Catat nomor WhatsApp di catatan jika kolom whatsapp belum ada di Supabase
+  const combinedCatatan = [
+    `[WA: ${data.whatsapp}] [KODE: ${humanBookingCode}]`,
+    data.catatan ? data.catatan : null,
+  ]
+    .filter(Boolean)
+    .join(" - ");
 
   try {
     const { data: inserted, error: dbError } = await supabase
@@ -113,7 +154,7 @@ export async function POST(request: NextRequest) {
         paket: data.paket,
         tanggal: data.tanggal,
         jumlah: data.jumlah,
-        catatan: data.catatan ?? null,
+        catatan: combinedCatatan,
         status: "PENDING",
         ip_address: ip,
       })
@@ -122,7 +163,7 @@ export async function POST(request: NextRequest) {
 
     if (dbError || !inserted) {
       console.warn("[API/booking] Supabase unavailable/paused, using fallback ID:", dbError?.message || dbError);
-      bookingId = `OJE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+      bookingId = humanBookingCode;
       createdAt = new Date().toISOString();
     } else {
       bookingId = inserted.id;
@@ -130,11 +171,11 @@ export async function POST(request: NextRequest) {
     }
   } catch (err) {
     console.warn("[API/booking] Supabase connection error, using fallback ID:", err);
-    bookingId = `OJE-${Date.now().toString(36).toUpperCase()}-${Math.random().toString(36).substring(2, 6).toUpperCase()}`;
+    bookingId = humanBookingCode;
     createdAt = new Date().toISOString();
   }
 
-  // ─── Layer 8: Kirim Email Notifikasi ke Admin ─────────────────────────────
+  // ─── Layer 9: Kirim Email Notifikasi ke Admin ─────────────────────────────
   // Email tidak blocking — jika gagal, booking tetap terproses
   const emailResult = await sendBookingNotification({
     ...data,
@@ -146,12 +187,13 @@ export async function POST(request: NextRequest) {
     console.warn("[API/booking] Email gagal terkirim:", emailResult.error);
   }
 
-  // ─── Layer 9: Return Sukses ───────────────────────────────────────────────
+  // ─── Layer 10: Return Sukses ──────────────────────────────────────────────
   return NextResponse.json(
     {
       success: true,
       bookingId: bookingId,
-      message: "Booking berhasil dicatat. Admin akan segera menghubungi Anda.",
+      bookingCode: humanBookingCode,
+      message: `Booking berhasil dicatat dengan kode ${humanBookingCode}. Admin akan segera menghubungi Anda via WhatsApp.`,
     },
     { status: 201 }
   );

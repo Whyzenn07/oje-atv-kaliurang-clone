@@ -1,4 +1,4 @@
-# 4. Threat Model — `POST /api/booking`
+﻿# 4. Threat Model â€” `POST /api/booking`
 
 Dibuat dengan skill `api-threat-modeling`.
 
@@ -16,9 +16,8 @@ Aset: data pelanggan, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, kuota email
 ## Tabel Ancaman
 | ID | Entry point | Ancaman (STRIDE) | Likelihood | Impact | Mitigasi | Status |
 |---|---|---|---|---|---|---|
-| T1 | POST body | Tampering: HTML injection ke email admin | Sedang | Sedang | Escape HTML di mailer | Terbuka |
-| T2 | POST | DoS: flood booking, habisi kuota 100 email/hari | Tinggi | Sedang | Rate limit, CAPTCHA/Turnstile, store bersama | Sebagian |
-| T3 | POST | DoS bisnis: habiskan 30 slot global | Sedang | Sedang | CAPTCHA, limit global lebih longgar | Terbuka |
+| T1 | POST body | Tampering: HTML injection ke email admin | Sedang | Sedang | Escape HTML di mailer | Selesai |`n| T2 | POST | DoS: flood booking, habisi kuota 100 email/hari | Tinggi | Sedang | Rate limit, CAPTCHA/Turnstile, store bersama | Sebagian |
+| T3 | POST | DoS bisnis: habiskan 30 slot global | Sedang | Sedang | CAPTCHA, limit global lebih longgar | Sebagian (limit 60/jam) |
 | T4 | Header XFF | Spoofing IP | Sedang | Rendah | IP terakhir di Vercel | Mitigasi (Vercel) |
 | T5 | Env/Repo | Info disclosure secret | Rendah | Tinggi | `.env*` ignored, rotasi key, jangan bagikan di chat | Perlu rotasi* |
 | T6 | Respons | Info disclosure error | Rendah | Rendah | Pesan generik | Selesai |
@@ -49,4 +48,5 @@ Aset: data pelanggan, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, kuota email
 
 ## Asumsi
 Domain Resend belum diverifikasi (`onboarding@resend.dev`), sehingga email hanya terkirim ke pemilik akun Resend.
+
 

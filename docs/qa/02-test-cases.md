@@ -1,6 +1,6 @@
-# 2. Test Case — Form Booking
+﻿# 2. Test Case â€” Form Booking
 
-Dibuat dengan skill `qa-test-case-design`. Aturan: nama 2–100 `[a-zA-Z\s\-.]`, paket enum (2), tanggal `YYYY-MM-DD` ≥ hari ini, jumlah int 1–30, catatan ≤300 opsional. Status: belum dieksekusi kecuali ditandai.
+Dibuat dengan skill `qa-test-case-design`. Aturan: nama 2â€“100 `[a-zA-Z\s\-.]`, paket enum (2), tanggal `YYYY-MM-DD` â‰¥ hari ini, jumlah int 1â€“30, catatan â‰¤300 opsional. Status: belum dieksekusi kecuali ditandai.
 
 Dasar payload valid: `{"nama":"Budi Sugiono","paket":"ATV Single (Rp 300.000 / 2 Jam)","jumlah":1,"tanggal":"<besok>","catatan":null}`
 
@@ -27,10 +27,10 @@ Dasar payload valid: `{"nama":"Budi Sugiono","paket":"ATV Single (Rp 300.000 / 2
 | TC-NEG-06 | JSON rusak | POST | `{nama:` | 400 |
 | TC-NEG-07 | Content-Type salah | POST dengan `text/plain` | payload dasar | 415 |
 | TC-NEG-08 | Method salah | GET, PUT, DELETE | - | 405 |
-| TC-NEG-09 | Nama beraksen | POST | `José Núñez` | Saat ini 422; catat sebagai potensi bug kegunaan |
+| TC-NEG-09 | Nama beraksen | POST | `JosÃ© NÃºÃ±ez` | 201 (diperbaiki, terverifikasi) |
 | TC-SEC-01 | Karakter khusus di nama | POST | `<script>alert(1)</script>`, `Robert'); DROP TABLE bookings;--` | 422 (regex) |
-| TC-SEC-02 | HTML di catatan | POST | `<a href="http://evil.test">klik</a>` | Tidak boleh dirender sebagai link di email admin (saat ini diduga dirender; lihat laporan review) |
-| TC-SEC-03 | Null byte/unicode/emoji | POST | catatan `%00`, `🔥`, newline | Diterima tanpa error 500; tersimpan utuh |
+| TC-SEC-02 | HTML di catatan | POST | `<a href="http://evil.test">klik</a>` | Tampil sebagai teks di email admin (diperbaiki, terverifikasi) |
+| TC-SEC-03 | Null byte/unicode/emoji | POST | catatan `%00`, `ðŸ”¥`, newline | Diterima tanpa error 500; tersimpan utuh |
 | TC-SEC-04 | Payload besar | POST dengan Content-Length >8192 | 20 KB | 413 |
 | TC-SEC-05 | Bypass limit via header | 4 request header `x-forwarded-for` berbeda | IP acak | Di Vercel: tetap dibatasi; lokal: boleh lolos (dokumentasikan) |
 | TC-NET-01 | Supabase tidak terjangkau | Set `SUPABASE_URL` salah, POST valid | payload dasar | 201 dengan ID `OJE-...`; peringatan di log; perilaku ini harus disetujui pemilik |
@@ -38,5 +38,6 @@ Dasar payload valid: `{"nama":"Budi Sugiono","paket":"ATV Single (Rp 300.000 / 2
 | TC-NET-03 | Timeout klien | Putus koneksi saat request | - | Tidak ada baris ganda saat dicoba ulang (dedup email aktif; DB belum idempoten) |
 | TC-RACE-01 | Submit ganda cepat | 2 POST identik paralel | payload dasar | Maks 1 email; periksa jumlah baris DB (ekspektasi: 1, kemungkinan 2) |
 | TC-RACE-02 | Batas rate limit | 4 POST paralel dari 1 IP | payload dasar | 3 sukses, 1 gagal 429 |
-| TC-RACE-03 | Limit global | 31 POST dari IP berbeda | payload berbeda | Request ke-31 → 429 |
+| TC-RACE-03 | Limit global | 31 POST dari IP berbeda | payload berbeda | Request ke-31 â†’ 429 |
+
 

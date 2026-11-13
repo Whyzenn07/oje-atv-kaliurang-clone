@@ -1,8 +1,8 @@
-# 5. Laporan Bug
+﻿# 5. Laporan Bug
 
 Dibuat dengan skill `qa-bug-report`, dari temuan review kode (tanpa eksploitasi nyata).
 
-# [BUG-001] Catatan booking disisipkan tanpa escape ke email HTML admin
+# [BUG-001] Catatan booking disisipkan tanpa escape ke email HTML admin`n- Status: DIPERBAIKI dan terverifikasi (email menampilkan catatan sebagai teks)
 - Severity: Sedang
 - Prioritas: P1
 - Lingkungan: kode di `main` (commit `0c2a1ec`), Next.js 16.3.4, Resend
@@ -31,7 +31,7 @@ Template literal tanpa fungsi escape. Perbaikan ada di `03-secure-code-review.md
 
 ---
 
-# [BUG-002] Pelanggan sah bisa terkena 429 karena limit global dihabiskan
+# [BUG-002] Pelanggan sah bisa terkena 429 karena limit global dihabiskan`n- Status: DIPERBAIKI SEBAGIAN (limit 60/jam); CAPTCHA belum dipasang
 - Severity: Sedang
 - Prioritas: P2
 - Langkah: kirim 30 booking valid dari IP berbeda dalam satu jam, lalu coba booking dari IP lain.
@@ -39,11 +39,12 @@ Template literal tanpa fungsi escape. Perbaikan ada di `03-secure-code-review.md
 - Diharapkan: pelanggan sah tetap dapat memesan; penyalahgunaan dibatasi tanpa mengunci semua orang.
 - Dampak: kehilangan pesanan selama serangan.
 
-# [BUG-003] Nama beraksen ditolak validasi
+# [BUG-003] Nama beraksen ditolak validasi`n- Status: DIPERBAIKI dan terverifikasi (José Núñez diterima)
 - Severity: Rendah
 - Prioritas: P3
-- Langkah: kirim `nama` = `José`.
+- Langkah: kirim `nama` = `JosÃ©`.
 - Aktual (dari regex `^[a-zA-Z\s\-.]+$`): 422.
 - Diharapkan: nama sah diterima (gunakan `\p{L}` dengan flag `u`).
 - Dampak: pelanggan bernama beraksen tidak bisa memesan.
+
 

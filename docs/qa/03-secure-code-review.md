@@ -1,8 +1,8 @@
-# 3. Secure Code Review — Endpoint Booking
+﻿# 3. Secure Code Review â€” Endpoint Booking
 
 Dibuat dengan skill `secure-code-review`. File ditinjau: `app/api/booking/route.ts`, `lib/ratelimit.ts`, `lib/mailer.ts`, `lib/validations.ts`, `supabase-schema.sql`. Hanya membaca; kode tidak diubah.
 
-## Temuan
+## Status Perbaikan (commit 2081f90)`n- DIPERBAIKI: HTML injection email, memory leak rate limit, batas body 8 KB (dicek dari isi aktual), dedup email (kunci kini mencakup paket + jumlah).`n- DIPERBAIKI SEBAGIAN: lockout global (limit dinaikkan 30 ke 60/jam); penutupan penuh butuh CAPTCHA.`n- TERBUKA: fallback sukses saat Supabase down, rate limit in-memory per instance.`n`n## Temuan
 
 ### [Sedang] HTML injection di email admin via `catatan`
 - Lokasi: `lib/mailer.ts` baris ~146 (`${booking.catatan}`) dan subject baris ~174.
@@ -33,7 +33,7 @@ Bersihkan juga newline di subject. Nama dan paket aman karena dibatasi regex dan
 - Perbaikan: sertakan paket dan jumlah di dedupe key; pertimbangkan unique constraint atau idempotency key.
 
 ### [Info] Fallback saat Supabase down mengembalikan sukses
-- `route.ts` baris ~115–125: data tidak tersimpan tetapi respons 201; pelanggan mengira booking tercatat. Email tetap menjadi satu-satunya jejak. Pastikan ini disengaja dan admin memantau email.
+- `route.ts` baris ~115â€“125: data tidak tersimpan tetapi respons 201; pelanggan mengira booking tercatat. Email tetap menjadi satu-satunya jejak. Pastikan ini disengaja dan admin memantau email.
 
 ### [Info] Rate limit in-memory per instance serverless
 - Tidak konsisten antar instance dan reset saat cold start. Akurat hanya sebagai penghalang dasar.
@@ -44,4 +44,5 @@ Bersihkan juga newline di subject. Nama dan paket aman karena dibatasi regex dan
 - Secret hanya di env server; `.env*` di-ignore Git.
 - `extractTrustedIp` memakai IP terakhir pada Vercel.
 - Security header (HSTS, nosniff, Referrer-Policy, CSP) terpasang.
+
 

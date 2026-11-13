@@ -91,26 +91,28 @@ export default function GallerySection() {
         </h2>
       </div>
 
-      {/* Responsive Image Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-0.5 bg-gray-100">
+      {/* Responsive Flexbox Gallery */}
+      <div className="flex flex-wrap bg-gray-100 p-[1px]">
         {galleryImages.map((img, i) => (
           <div
             key={i}
             onClick={() => setSelectedIdx(i)}
-            className="relative overflow-hidden aspect-square group cursor-pointer bg-gray-900"
+            className="w-1/2 sm:w-1/3 md:w-1/4 p-[1px] aspect-square cursor-pointer"
           >
-            <img
-              src={img.src}
-              alt={img.alt}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-              loading="lazy"
-            />
-            {/* Hover overlay with zoom icon */}
-            <div className="absolute inset-0 bg-[#b51b41]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
-              <ZoomIn className="w-10 h-10 mb-2 transform group-hover:scale-110 transition-transform" />
-              <span className="text-xs font-bold uppercase tracking-wider">
-                Lihat Foto
-              </span>
+            <div className="relative w-full h-full overflow-hidden group bg-gray-900">
+              <img
+                src={img.src}
+                alt={img.alt}
+                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
+                loading="lazy"
+              />
+              {/* Hover overlay with zoom icon */}
+              <div className="absolute inset-0 bg-[#b51b41]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
+                <ZoomIn className="w-10 h-10 mb-2 transform group-hover:scale-110 transition-transform" />
+                <span className="text-xs font-bold uppercase tracking-wider">
+                  Lihat Foto
+                </span>
+              </div>
             </div>
           </div>
         ))}

@@ -90,7 +90,7 @@ function StatCard({
   const count = useCountUp(value, 2200, started);
   return (
     <div
-      className={`flex flex-col items-center text-center px-3 sm:px-6 py-6 group cursor-default transition-all duration-700 ${
+      className={`w-1/2 md:w-1/4 flex flex-col items-center text-center px-3 sm:px-6 py-6 group cursor-default transition-all duration-700 ${
         !isLast ? "md:border-r border-white/15" : ""
       }`}
       style={{
@@ -150,7 +150,7 @@ export default function StatsSection() {
       </div>
 
       <div className="relative z-10 max-w-6xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 md:gap-0">
+        <div className="flex flex-wrap md:flex-nowrap gap-y-6">
           {stats.map((stat, i) => (
             <StatCard
               key={stat.label}

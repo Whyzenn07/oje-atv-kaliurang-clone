@@ -22,9 +22,9 @@ export default function KenapaKamiSection() {
   return (
     <section className="relative py-0 overflow-hidden bg-white">
       <div className="max-w-7xl mx-auto">
-        <div className="grid grid-cols-1 md:grid-cols-4 shadow-xl">
+        <div className="flex flex-col md:flex-row shadow-xl">
           {/* Left red panel - "Kenapa Kami" */}
-          <div className="bg-[#b51b41] text-white flex flex-col justify-center px-8 py-12 md:py-16">
+          <div className="w-full md:flex-1 min-w-0 bg-[#b51b41] text-white flex flex-col justify-center px-8 py-12 md:py-16">
             <h2 className="text-3xl sm:text-4xl font-black leading-tight mb-3">
               Kenapa
               <br />
@@ -41,7 +41,7 @@ export default function KenapaKamiSection() {
           {cards.map((card, i) => (
             <div
               key={i}
-              className="bg-white border-b md:border-b-0 md:border-r border-gray-100 flex flex-col items-center text-center px-6 py-10 sm:py-12 hover:bg-gray-50/80 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group cursor-default"
+              className="w-full md:flex-1 min-w-0 bg-white border-b md:border-b-0 md:border-r border-gray-100 flex flex-col items-center text-center px-6 py-10 sm:py-12 hover:bg-gray-50/80 hover:-translate-y-1 hover:shadow-xl transition-all duration-300 group cursor-default"
             >
               {/* Icon box using exact Elementor original icons with professional bounce/scale */}
               <div className="w-20 h-20 mb-5 flex items-center justify-center relative">

@@ -6,9 +6,9 @@ export default function ProfilSection() {
   return (
     <section id="profil" className="py-14 sm:py-24 bg-white overflow-hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-center">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-center">
           {/* Left: ATV Image with decorative elements */}
-          <div className="relative animate-slide-left max-w-lg mx-auto lg:max-w-none w-full">
+          <div className="relative animate-slide-left max-w-lg mx-auto lg:max-w-none w-full lg:flex-1 min-w-0">
             {/* Red decorative box behind */}
             <div className="absolute top-3 left-2 sm:top-4 sm:left-4 w-[45%] h-[55%] bg-[#b51b41] rounded-2xl z-0" />
 
@@ -36,7 +36,7 @@ export default function ProfilSection() {
           </div>
 
           {/* Right: Text content */}
-          <div className="animate-slide-right mt-4 lg:mt-0">
+          <div className="w-full lg:flex-1 min-w-0 animate-slide-right mt-4 lg:mt-0">
             <p className="text-amber-500 font-extrabold text-xs sm:text-sm tracking-[0.3em] uppercase mb-2">
               PROFIL
             </p>

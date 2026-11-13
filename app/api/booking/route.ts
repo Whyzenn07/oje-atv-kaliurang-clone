@@ -17,6 +17,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { BookingSchema } from "@/lib/validations";
 import { supabase } from "@/lib/supabase";
 import { sendBookingNotification } from "@/lib/mailer";
+import { appendBookingToGoogleSheets } from "@/lib/sheets";
 import { isRateLimited, extractTrustedIp, MAX_BODY_BYTES } from "@/lib/ratelimit";
 
 // Hanya izinkan method POST
@@ -175,16 +176,33 @@ export async function POST(request: NextRequest) {
     createdAt = new Date().toISOString();
   }
 
-  // ─── Layer 9: Kirim Email Notifikasi ke Admin ─────────────────────────────
-  // Email tidak blocking — jika gagal, booking tetap terproses
-  const emailResult = await sendBookingNotification({
-    ...data,
-    id: bookingId,
-    created_at: createdAt,
-  });
+  // ─── Layer 9: Kirim Email Notifikasi Admin & Sinkronisasi ke Google Sheets ──
+  // Keduanya tidak blocking — dijalankan paralel agar booking tetap cepat & sukses
+  const [emailSettled, sheetsSettled] = await Promise.allSettled([
+    sendBookingNotification({
+      ...data,
+      id: bookingId,
+      created_at: createdAt,
+    }),
+    appendBookingToGoogleSheets({
+      ...data,
+      bookingId,
+      bookingCode: humanBookingCode,
+      status: "PENDING",
+      created_at: createdAt,
+    }),
+  ]);
 
-  if (!emailResult.success) {
-    console.warn("[API/booking] Email gagal terkirim:", emailResult.error);
+  if (emailSettled.status === "fulfilled" && !emailSettled.value.success) {
+    console.warn("[API/booking] Email gagal terkirim:", emailSettled.value.error);
+  } else if (emailSettled.status === "rejected") {
+    console.warn("[API/booking] Email error:", emailSettled.reason);
+  }
+
+  if (sheetsSettled.status === "fulfilled" && !sheetsSettled.value.success) {
+    console.warn("[API/booking] Google Sheets sync gagal:", sheetsSettled.value.error);
+  } else if (sheetsSettled.status === "rejected") {
+    console.warn("[API/booking] Google Sheets error:", sheetsSettled.reason);
   }
 
   // ─── Layer 10: Return Sukses ──────────────────────────────────────────────

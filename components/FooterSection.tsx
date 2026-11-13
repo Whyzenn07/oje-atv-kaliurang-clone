@@ -23,9 +23,9 @@ export default function FooterSection() {
       <div className="absolute inset-x-0 top-0 h-12 bg-gradient-to-b from-black/20 to-transparent pointer-events-none" />
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-10 lg:gap-14 pb-12">
+        <div className="flex flex-col md:flex-row gap-10 lg:gap-14 pb-12">
           {/* Column 1: Logo + description + social */}
-          <div className="flex flex-col items-start">
+          <div className="w-full md:flex-1 min-w-0 flex flex-col items-start">
             <a
               href="#hero"
               onClick={(e) => {
@@ -71,7 +71,7 @@ export default function FooterSection() {
           </div>
 
           {/* Column 2: Links Menu */}
-          <div>
+          <div className="w-full md:flex-1 min-w-0">
             <h3 className="font-bold text-xl sm:text-2xl text-white mb-6 tracking-tight">
               Links Menu
             </h3>
@@ -91,7 +91,7 @@ export default function FooterSection() {
           </div>
 
           {/* Column 3: INFORMASI */}
-          <div>
+          <div className="w-full md:flex-1 min-w-0">
             <h3 className="font-bold text-xl sm:text-2xl text-white mb-6 uppercase tracking-tight">
               INFORMASI
             </h3>

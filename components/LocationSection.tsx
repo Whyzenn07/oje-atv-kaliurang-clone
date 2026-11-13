@@ -35,9 +35,9 @@ export default function LocationSection() {
 
       {/* Content: Info + Map */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 py-12 sm:py-20">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-14 items-start">
+        <div className="flex flex-col lg:flex-row gap-10 lg:gap-14 items-start">
           {/* Left: Location Info */}
-          <div>
+          <div className="w-full lg:flex-1 min-w-0">
             {/* Address Card */}
             <div className="bg-gray-900/80 border border-white/10 rounded-2xl p-6 sm:p-8 mb-6 backdrop-blur">
               <div className="flex items-start gap-4 mb-5">
@@ -60,9 +60,9 @@ export default function LocationSection() {
                 </div>
                 <div>
                   <h3 className="font-bold text-lg text-white mb-2">Jam Operasional</h3>
-                  <div className="space-y-1.5">
+                  <div className="flex flex-col gap-1.5">
                     {operatingHours.map((item) => (
-                      <div key={item.day} className="flex items-center justify-between gap-4">
+                      <div key={item.day} className="flex flex-wrap items-center justify-between gap-2">
                         <span className="text-gray-400 text-sm">{item.day}</span>
                         <span className="text-white text-sm font-semibold">{item.hours}</span>
                       </div>
@@ -111,7 +111,7 @@ export default function LocationSection() {
           </div>
 
           {/* Right: Google Maps Embed */}
-          <div className="rounded-2xl overflow-hidden border border-white/10 shadow-2xl aspect-square sm:aspect-[4/3]">
+          <div className="w-full lg:flex-1 min-w-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl aspect-square sm:aspect-[4/3]">
             <iframe
               src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3953.8!2d110.42861!3d-7.59972!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2e7a5d8eb8b5c0e1%3A0x1234567890abcdef!2sKaliurang%2C%20Hargobinangun%2C%20Pakem%2C%20Sleman!5e0!3m2!1sid!2sid!4v1700000000000!5m2!1sid!2sid"
               width="100%"

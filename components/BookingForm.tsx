@@ -5,6 +5,7 @@ import { CONTACT } from "@/lib/constants";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
 const SPAM_COOLDOWN_SEC = 8; // detik jeda setelah submit
+const MAX_UNITS = 15; // sinkron dengan kuota harian API (MAX_ATV_PER_DAY)
 
 const packages = [
   "ATV Single (Rp 300.000 / 2 Jam)",
@@ -29,7 +30,8 @@ type BookingReceipt = {
 };
 
 const emptySubscribe = () => () => {};
-const getTodayDateString = () => new Date().toLocaleDateString("en-CA");
+const getTodayDateString = () =>
+  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 /** Sanitasi input: hapus karakter berbahaya & batasi panjang */
 function sanitize(str: string, maxLen = 200): string {
@@ -78,6 +80,19 @@ export default function BookingForm() {
     };
   }, []);
 
+  // Terima pilihan paket otomatis dari section harga (#harga)
+  useEffect(() => {
+    const onSelectPkg = (e: Event) => {
+      const pkg = (e as CustomEvent<string>).detail;
+      if (typeof pkg === "string" && packages.includes(pkg)) {
+        setForm((prev) => ({ ...prev, paket: pkg }));
+        setTouched((prev) => ({ ...prev, paket: false }));
+      }
+    };
+    window.addEventListener("oje:select-package", onSelectPkg);
+    return () => window.removeEventListener("oje:select-package", onSelectPkg);
+  }, []);
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
@@ -92,7 +107,7 @@ export default function BookingForm() {
     const safeWA = sanitize(form.whatsapp, 20);
     const safePaket = sanitize(form.paket, 100);
     const safeCatatan = sanitize(form.catatan, 300);
-    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
+    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
 
     const lines = [
       "🏍️ *BOOKING OJE ATV KALIURANG*",
@@ -137,7 +152,7 @@ export default function BookingForm() {
     const safeName = sanitize(form.nama, 100);
     const safeWA = sanitize(form.whatsapp, 20);
     const safeCatatan = form.catatan ? sanitize(form.catatan, 300) : "";
-    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
+    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
     const selectedPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
     const totalEstimasi = selectedPrice
       ? `Rp ${(selectedPrice * safeJumlah).toLocaleString("id-ID")}`
@@ -229,12 +244,12 @@ export default function BookingForm() {
   const labelClass = "block text-xs sm:text-sm font-bold text-[#1c1c1c]";
 
   const unitPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
-  const qty = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), 30);
+  const qty = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
   const estimate = unitPrice
     ? `Rp ${(unitPrice * qty).toLocaleString("id-ID")}`
     : "Pilih paket terlebih dahulu";
   const setQty = (n: number) =>
-    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), 30)) }));
+    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), MAX_UNITS)) }));
 
   return (
     <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-hidden">
@@ -415,8 +430,9 @@ export default function BookingForm() {
                   <button
                     type="button"
                     onClick={() => setQty(qty - 1)}
+                    disabled={qty <= 1}
                     aria-label="Kurangi jumlah unit"
-                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors shrink-0"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     &minus;
                   </button>
@@ -427,14 +443,15 @@ export default function BookingForm() {
                     value={form.jumlah}
                     onChange={handleChange}
                     min="1"
-                    max="30"
+                    max={MAX_UNITS}
                     className="w-16 min-w-0 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
                     onClick={() => setQty(qty + 1)}
+                    disabled={qty >= MAX_UNITS}
                     aria-label="Tambah jumlah unit"
-                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 text-lg font-bold cursor-pointer transition-colors shrink-0"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     +
                   </button>
@@ -506,7 +523,7 @@ export default function BookingForm() {
             </button>
 
             <p className="text-center text-[11px] sm:text-xs text-gray-500">
-              Admin kami akan langsung merespon konfirmasi jadwal booking Anda.
+              Maksimal {MAX_UNITS} unit per hari · Admin kami akan langsung merespon konfirmasi jadwal booking Anda.
             </p>
           </form>
         </div>

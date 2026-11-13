@@ -32,17 +32,17 @@ export const BookingSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid (YYYY-MM-DD)")
     .refine((date) => {
-      const picked = new Date(date);
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      return picked >= today;
+      const todayJakarta = new Date().toLocaleDateString("en-CA", {
+        timeZone: "Asia/Jakarta",
+      });
+      return date >= todayJakarta;
     }, "Tanggal tidak boleh di masa lalu"),
 
   jumlah: z
     .number()
     .int("Jumlah harus bilangan bulat")
     .min(1, "Minimal 1 unit")
-    .max(30, "Maksimal 30 unit"),
+    .max(15, "Maksimal 15 unit per hari"),
 
   catatan: z
     .string()

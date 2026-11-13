@@ -1,6 +1,6 @@
 "use client";
 
-import { CheckCircle2 } from "lucide-react";
+import { CheckCircle2, Clock } from "lucide-react";
 import { WA_ORDER_LINK } from "@/lib/constants";
 
 const trek = [
@@ -20,6 +20,11 @@ const fasilitas = [
 ];
 
 export default function PricingSection() {
+  const selectPackageAndScroll = (pkg: string) => {
+    window.dispatchEvent(new CustomEvent("oje:select-package", { detail: pkg }));
+    const el = document.getElementById("booking");
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
 
   return (
     <section id="harga" className="py-0">
@@ -47,9 +52,9 @@ export default function PricingSection() {
       {/* Pricing Detail Card */}
       <div className="bg-[#f5f5f5] py-12 sm:py-20 md:py-28">
         <div className="max-w-6xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-10 lg:gap-16 items-start">
+          <div className="flex flex-col lg:flex-row gap-10 lg:gap-16 items-start">
             {/* Left: Image stack with decorative elements */}
-            <div className="relative max-w-md mx-auto lg:max-w-none w-full">
+            <div className="relative max-w-md mx-auto lg:max-w-none w-full lg:flex-1 min-w-0">
               {/* Red block behind image */}
               <div className="absolute top-4 left-0 w-[45%] h-[50%] bg-[#b51b41] rounded-2xl z-0" />
 
@@ -77,13 +82,13 @@ export default function PricingSection() {
             </div>
 
             {/* Right: Pricing details */}
-            <div className="bg-white p-6 sm:p-10 rounded-2xl shadow-lg border border-gray-100 mt-4 lg:mt-0">
+            <div className="w-full lg:flex-1 min-w-0 bg-white p-6 sm:p-10 rounded-2xl shadow-lg border border-gray-100 mt-4 lg:mt-0">
               <p className="text-amber-500 font-extrabold text-[11px] sm:text-xs tracking-[0.25em] uppercase mb-2">
                 PAKET HARGA ATV KALIURANG EXPLORE
               </p>
 
               {/* Price lines */}
-              <div className="space-y-1 mb-3">
+              <div className="flex flex-col gap-1 mb-3">
                 <h3 className="text-2xl sm:text-4xl font-black text-gray-900 leading-tight">
                   ATV SINGLE 300K
                 </h3>
@@ -93,8 +98,9 @@ export default function PricingSection() {
               </div>
 
               {/* Durasi */}
-              <div className="inline-block bg-red-50 text-[#b51b41] font-black text-xs sm:text-sm px-3.5 py-1.5 rounded-full mb-5">
-                ⏱️ DURASI +2 JAM
+              <div className="inline-flex items-center gap-1.5 bg-red-50 text-[#b51b41] font-black text-xs sm:text-sm px-3.5 py-1.5 rounded-full mb-5">
+                <Clock className="w-4 h-4 shrink-0" />
+                <span>DURASI ±2 JAM</span>
               </div>
 
               <div className="w-full h-px bg-gray-100 mb-5" />
@@ -104,11 +110,11 @@ export default function PricingSection() {
                 <p className="font-extrabold text-gray-900 text-xs sm:text-sm uppercase tracking-wider mb-2.5">
                   Rute &amp; Trek Wisata:
                 </p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <ul className="flex flex-wrap gap-y-2 gap-x-4">
                   {trek.map((t) => (
                     <li
                       key={t}
-                      className="flex items-center gap-2 text-gray-700 text-xs sm:text-sm font-medium"
+                      className="w-full sm:w-[calc(50%-0.5rem)] flex items-center gap-2 text-gray-700 text-xs sm:text-sm font-medium"
                     >
                       <CheckCircle2 className="w-4 h-4 text-[#b51b41] shrink-0" />
                       {t}
@@ -122,17 +128,35 @@ export default function PricingSection() {
                 <p className="font-extrabold text-[#b51b41] text-xs sm:text-sm uppercase tracking-wider mb-2.5">
                   FASILITAS SUDAH TERMASUK:
                 </p>
-                <ul className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <ul className="flex flex-wrap gap-y-2 gap-x-4">
                   {fasilitas.map((f) => (
                     <li
                       key={f}
-                      className="flex items-center gap-2 text-gray-700 text-xs sm:text-sm font-medium"
+                      className="w-full sm:w-[calc(50%-0.5rem)] flex items-center gap-2 text-gray-700 text-xs sm:text-sm font-medium"
                     >
                       <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
                       {f}
                     </li>
                   ))}
                 </ul>
+              </div>
+
+              {/* Quick package selection to auto-fill BookingForm */}
+              <div className="flex flex-col sm:flex-row gap-2.5 mb-3">
+                <button
+                  type="button"
+                  onClick={() => selectPackageAndScroll("ATV Single (Rp 300.000 / 2 Jam)")}
+                  className="w-full sm:flex-1 inline-flex items-center justify-center bg-[#1c1c1c] hover:bg-black active:scale-95 text-white font-bold text-sm px-4 py-3.5 rounded-xl transition-all cursor-pointer"
+                >
+                  Booking Single (300K)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => selectPackageAndScroll("ATV Boncengan (Rp 350.000 / 2 Jam)")}
+                  className="w-full sm:flex-1 inline-flex items-center justify-center bg-white hover:bg-gray-50 active:scale-95 text-[#1c1c1c] border border-gray-300 font-bold text-sm px-4 py-3.5 rounded-xl transition-all cursor-pointer"
+                >
+                  Booking Boncengan (350K)
+                </button>
               </div>
 
               {/* Action Buttons */}
@@ -157,12 +181,6 @@ export default function PricingSection() {
                       d="M13 7l5 5m0 0l-5 5m5-5H6"
                     />
                   </svg>
-                </a>
-                <a
-                  href="#booking"
-                  className="w-full sm:w-auto inline-flex items-center justify-center gap-2 bg-gray-900 hover:bg-gray-800 active:scale-95 text-white font-bold text-sm px-6 py-4 rounded-xl transition-all"
-                >
-                  Form Booking
                 </a>
               </div>
             </div>

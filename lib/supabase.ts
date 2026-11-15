@@ -42,10 +42,13 @@ export const supabase = {
 
 // Type untuk data booking yang masuk dari form
 export type BookingInsert = {
+  booking_code?: string | null;
   nama: string;
+  whatsapp?: string | null;
   paket: string;
   tanggal: string;
   jumlah: number;
+  estimasi_total?: number | null;
   catatan: string | null;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";
   ip_address: string | null;

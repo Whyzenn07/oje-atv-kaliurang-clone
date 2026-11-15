@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { WA_ORDER_LINK } from "@/lib/constants";
 
 export default function ProfilSection() {
@@ -13,11 +14,13 @@ export default function ProfilSection() {
             <div className="absolute top-3 left-2 sm:top-4 sm:left-4 w-[45%] h-[55%] bg-[#b51b41] rounded-2xl z-0" />
 
             {/* Main photo */}
-            <div className="relative z-10 rounded-2xl overflow-hidden shadow-xl ml-4 sm:ml-6 mt-4 sm:mt-6">
-              <img
+            <div className="relative z-10 rounded-2xl overflow-hidden shadow-xl ml-4 sm:ml-6 mt-4 sm:mt-6 h-[280px] sm:h-[420px] md:h-[480px]">
+              <Image
                 src="/images/atv-kaliurang-merapi-10.jpeg"
                 alt="ATV Merapi Kaliurang - Jelajahi Hutan dan Sungai"
-                className="w-full h-[280px] sm:h-[420px] md:h-[480px] object-cover"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover"
               />
             </div>
 

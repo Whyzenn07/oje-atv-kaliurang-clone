@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
+import Image from "next/image";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
 
 const galleryImages = [
@@ -94,17 +95,20 @@ export default function GallerySection() {
       {/* Responsive Flexbox Gallery */}
       <div className="flex flex-wrap bg-gray-100 p-[1px]">
         {galleryImages.map((img, i) => (
-          <div
+          <button
+            type="button"
             key={i}
             onClick={() => setSelectedIdx(i)}
-            className="w-1/2 sm:w-1/3 md:w-1/4 p-[1px] aspect-square cursor-pointer"
+            aria-label={`Lihat foto ${img.alt}`}
+            className="w-1/2 sm:w-1/3 md:w-1/4 p-[1px] aspect-square cursor-pointer block text-left"
           >
             <div className="relative w-full h-full overflow-hidden group bg-gray-900">
-              <img
+              <Image
                 src={img.src}
                 alt={img.alt}
-                className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
-                loading="lazy"
+                fill
+                sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
+                className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
               {/* Hover overlay with zoom icon */}
               <div className="absolute inset-0 bg-[#b51b41]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
@@ -114,13 +118,16 @@ export default function GallerySection() {
                 </span>
               </div>
             </div>
-          </div>
+          </button>
         ))}
       </div>
 
       {/* Lightbox Modal with Swipe + Keyboard support */}
       {selectedIdx !== null && (
         <div
+          role="dialog"
+          aria-modal="true"
+          aria-label={`Galeri ${galleryImages[selectedIdx].alt}`}
           className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
           onClick={close}
           onTouchStart={onTouchStart}
@@ -128,6 +135,7 @@ export default function GallerySection() {
         >
           {/* Close button */}
           <button
+            type="button"
             onClick={close}
             className="absolute top-4 right-4 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
             aria-label="Tutup lightbox"
@@ -137,6 +145,7 @@ export default function GallerySection() {
 
           {/* Prev */}
           <button
+            type="button"
             onClick={(e) => { e.stopPropagation(); prev(); }}
             className="absolute left-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
             aria-label="Foto sebelumnya"
@@ -146,6 +155,7 @@ export default function GallerySection() {
 
           {/* Next */}
           <button
+            type="button"
             onClick={(e) => { e.stopPropagation(); next(); }}
             className="absolute right-4 top-1/2 -translate-y-1/2 z-50 w-12 h-12 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors"
             aria-label="Foto selanjutnya"
@@ -158,11 +168,14 @@ export default function GallerySection() {
             className="relative max-w-5xl max-h-[85vh] p-2"
             onClick={(e) => e.stopPropagation()}
           >
-            <img
+            <Image
               key={selectedIdx}
               src={galleryImages[selectedIdx].src}
               alt={galleryImages[selectedIdx].alt}
-              className="max-w-full max-h-[80vh] object-contain mx-auto rounded-xl shadow-2xl animate-zoom-in transition-all duration-300"
+              width={1200}
+              height={900}
+              sizes="90vw"
+              className="max-w-full max-h-[80vh] w-auto h-auto object-contain mx-auto rounded-xl shadow-2xl animate-zoom-in transition-all duration-300"
             />
             <p className="text-center text-white/80 text-xs sm:text-sm font-bold uppercase tracking-wider mt-3">
               Foto {selectedIdx + 1} dari {galleryImages.length}

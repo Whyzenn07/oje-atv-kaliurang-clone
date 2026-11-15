@@ -1,10 +1,24 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Play, X } from "lucide-react";
 
 export default function TentangKamiSection() {
   const [videoOpen, setVideoOpen] = useState(false);
+
+  useEffect(() => {
+    if (!videoOpen) return;
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setVideoOpen(false);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [videoOpen]);
 
   return (
     <section className="relative py-20 sm:py-24 bg-[#2d2d2d] text-white overflow-hidden">
@@ -49,14 +63,18 @@ export default function TentangKamiSection() {
 
           {/* Right column: Video Preview Box */}
           <div className="relative w-full lg:flex-1 min-w-0">
-            <div
+            <button
+              type="button"
               onClick={() => setVideoOpen(true)}
-              className="relative rounded-2xl overflow-hidden shadow-2xl border border-white/10 group cursor-pointer aspect-video"
+              aria-label="Putar video petualangan ATV Kaliurang"
+              className="relative w-full text-left block rounded-2xl overflow-hidden shadow-2xl border border-white/10 group cursor-pointer aspect-video"
             >
-              <img
+              <Image
                 src="/images/ATV-KALIURANG-3.jpeg"
                 alt="Video ATV Kaliurang"
-                className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                fill
+                sizes="(max-width: 1024px) 100vw, 50vw"
+                className="object-cover group-hover:scale-105 transition-transform duration-500"
               />
               <div className="absolute inset-0 bg-black/45 group-hover:bg-black/30 transition-colors" />
 
@@ -72,17 +90,28 @@ export default function TentangKamiSection() {
                   Klik untuk Memutar Video Petualangan
                 </p>
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>
 
       {/* Video Modal */}
       {videoOpen && (
-        <div className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4">
-          <div className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl">
+        <div
+          onClick={() => setVideoOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Video ATV Kaliurang"
+          className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
+        >
+          <div
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-4xl aspect-video bg-black rounded-2xl overflow-hidden shadow-2xl"
+          >
             <button
+              type="button"
               onClick={() => setVideoOpen(false)}
+              aria-label="Tutup video"
               className="absolute top-4 right-4 z-10 w-10 h-10 rounded-full bg-black/70 hover:bg-black text-white flex items-center justify-center transition-colors"
             >
               <X className="w-6 h-6" />

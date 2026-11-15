@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { MapPin, Clock, Navigation, Phone } from "lucide-react";
 import { CONTACT } from "@/lib/constants";
 
@@ -15,10 +16,12 @@ export default function LocationSection() {
       {/* Header Banner */}
       <div className="relative py-10 sm:py-16 text-center overflow-hidden">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/images/atv-kaliurang-merapi-5.jpeg"
             alt="Lokasi ATV Kaliurang"
-            className="w-full h-full object-cover object-center"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-black/80" />
         </div>

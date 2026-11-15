@@ -260,19 +260,24 @@ export default function HeroSection() {
         </div>
       </div>
 
-      {/* Slide Indicators — minimal thin bar style, no container */}
-      <div className="absolute bottom-5 sm:bottom-8 left-1/2 -translate-x-1/2 z-30 flex items-center gap-2">
+      {/* Slide Indicators — minimal visual dots dengan area sentuh >= 44px */}
+      <div className="absolute bottom-3 sm:bottom-6 left-1/2 -translate-x-1/2 z-30 flex items-center gap-0.5">
         {heroSlides.map((_, i) => (
           <button
+            type="button"
             key={i}
             onClick={() => goToSlide(i)}
             aria-label={`Pilih slide ${i + 1}`}
-            className={`no-min-size transition-all duration-500 rounded-full block ${
-              i === currentSlide
-                ? "w-7 sm:w-8 h-1 bg-[#f6a440] shadow-[0_0_8px_rgba(246,164,64,0.7)]"
-                : "w-1.5 h-1.5 bg-white/45 hover:bg-white/80"
-            }`}
-          />
+            className="flex items-center justify-center p-2 cursor-pointer"
+          >
+            <span
+              className={`transition-all duration-500 rounded-full block ${
+                i === currentSlide
+                  ? "w-7 sm:w-8 h-1 bg-[#f6a440] shadow-[0_0_8px_rgba(246,164,64,0.7)]"
+                  : "w-1.5 h-1.5 bg-white/45 hover:bg-white/80"
+              }`}
+            />
+          </button>
         ))}
       </div>
     </section>

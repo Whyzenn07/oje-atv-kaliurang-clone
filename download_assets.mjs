@@ -72,7 +72,7 @@ async function download(file) {
         console.log(`✓ Downloaded: ${file}`);
         return;
       }
-    } catch (e) {
+    } catch {
       // continue next url
     }
   }

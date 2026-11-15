@@ -10,6 +10,7 @@
  * - Timeout 5 detik agar tidak menghambat response booking customer
  */
 import type { BookingInput } from "./validations";
+import { getPackageUnitPrice } from "./constants";
 
 export type SheetBookingPayload = BookingInput & {
   bookingId: string;
@@ -30,10 +31,6 @@ export function sanitizeSheetCell(value: string): string {
     return `'${normalized}`;
   }
   return normalized;
-}
-
-function getPackageUnitPrice(paket: string): number {
-  return paket.includes("350.000") ? 350_000 : 300_000;
 }
 
 function validateWebhookUrl(rawUrl: string): URL | null {

@@ -1,5 +1,19 @@
 import type { Metadata, Viewport } from "next";
+import { Manrope, Montserrat } from "next/font/google";
+import { SITE_URL } from "@/lib/constants";
 import "./globals.css";
+
+const manrope = Manrope({
+  subsets: ["latin"],
+  variable: "--font-manrope",
+  display: "swap",
+});
+
+const montserrat = Montserrat({
+  subsets: ["latin"],
+  variable: "--font-montserrat",
+  display: "swap",
+});
 
 export const viewport: Viewport = {
   themeColor: "#b51b41",
@@ -25,7 +39,7 @@ export const metadata: Metadata = {
     icon: "/images/logos.png",
     apple: "/images/logos.png",
   },
-  metadataBase: new URL("https://ojeatvkaliurang.com"),
+  metadataBase: new URL(SITE_URL),
   alternates: {
     canonical: "/",
   },
@@ -34,7 +48,7 @@ export const metadata: Metadata = {
     description:
       "Jelajahi Hutan, Sungai menggunakan ATV Kaliurang bersama keluarga, teman, atau orang terkasih Anda. Paket mulai 300K.",
     type: "website",
-    url: "https://ojeatvkaliurang.com/",
+    url: `${SITE_URL}/`,
     images: [
       {
         url: "/images/ATV-KALIURANG-1.jpeg",
@@ -44,6 +58,13 @@ export const metadata: Metadata = {
       },
     ],
     locale: "id_ID",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "O.J.E – Atv Kaliurang Merapi",
+    description:
+      "Jelajahi Hutan & Sungai Kaliurang Merapi bersama OJE ATV. Paket mulai 300K.",
+    images: ["/images/ATV-KALIURANG-1.jpeg"],
   },
   robots: {
     index: true,
@@ -61,10 +82,10 @@ const jsonLd = {
   name: "OJE ATV Kaliurang Merapi",
   description:
     "Penyewaan dan tur petualangan ATV di Kaliurang Merapi Yogyakarta melintasi rute hutan, sungai, dan trek offroad menantang.",
-  url: "https://ojeatvkaliurang.com",
+  url: SITE_URL,
   telephone: "+6281226983990",
   priceRange: "Rp 300.000 - Rp 350.000",
-  image: "https://ojeatvkaliurang.com/images/ATV-KALIURANG-1.jpeg",
+  image: `${SITE_URL}/images/ATV-KALIURANG-1.jpeg`,
   address: {
     "@type": "PostalAddress",
     streetAddress: "Kaliurang Timur, RT.05/RW15, Kaliurang, Hargobinangun",
@@ -104,18 +125,11 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="id" className="scroll-smooth">
+    <html
+      lang="id"
+      className={`scroll-smooth ${manrope.variable} ${montserrat.variable}`}
+    >
       <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link
-          rel="preconnect"
-          href="https://fonts.gstatic.com"
-          crossOrigin="anonymous"
-        />
-        <link
-          href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&family=Montserrat:wght@400;500;600;700;800;900&display=swap"
-          rel="stylesheet"
-        />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

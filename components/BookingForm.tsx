@@ -1,16 +1,18 @@
 "use client";
 
 import { useState, useEffect, useRef, useSyncExternalStore } from "react";
-import { CONTACT } from "@/lib/constants";
+import { Check, Copy } from "lucide-react";
+import {
+  CONTACT,
+  MAX_UNITS_PER_DAY,
+  PACKAGE_OPTIONS,
+  getPackageUnitPrice,
+  getTodayJakartaDateString,
+} from "@/lib/constants";
 import { WhatsAppIcon } from "@/components/SocialIcons";
 
 const SPAM_COOLDOWN_SEC = 8; // detik jeda setelah submit
-const MAX_UNITS = 15; // sinkron dengan kuota harian API (MAX_ATV_PER_DAY)
-
-const packages = [
-  "ATV Single (Rp 300.000 / 2 Jam)",
-  "ATV Boncengan (Rp 350.000 / 2 Jam)",
-];
+const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || "";
 
 const notePresets = [
   "Request dokumentasi fotografer & editor",
@@ -29,15 +31,39 @@ type BookingReceipt = {
   catatan: string;
 };
 
+type AvailabilityInfo = {
+  tanggal: string;
+  maxUnits: number;
+  bookedUnits: number | null;
+  remaining: number | null;
+};
+
+declare global {
+  interface Window {
+    turnstile?: {
+      render: (
+        container: HTMLElement,
+        options: {
+          sitekey: string;
+          theme?: "light" | "dark" | "auto";
+          callback?: (token: string) => void;
+          "expired-callback"?: () => void;
+          "error-callback"?: () => void;
+        }
+      ) => string;
+      reset: (widgetId?: string) => void;
+      remove: (widgetId?: string) => void;
+    };
+  }
+}
+
 const emptySubscribe = () => () => {};
-const getTodayDateString = () =>
-  new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Jakarta" });
 
 /** Sanitasi input: hapus karakter berbahaya & batasi panjang */
 function sanitize(str: string, maxLen = 200): string {
   return str
     .trim()
-    .replace(/[<>"'`\\]/g, "") // hapus karakter berbahaya
+    .replace(/[<>"'`\\]/g, "")
     .slice(0, maxLen);
 }
 
@@ -50,27 +76,73 @@ export default function BookingForm() {
     jumlah: "1",
     catatan: "",
   });
+  const [websiteHoneypot, setWebsiteHoneypot] = useState("");
   const [touched, setTouched] = useState<Record<string, boolean>>({});
-  const minDate = useSyncExternalStore(emptySubscribe, getTodayDateString, () => "");
+  const minDate = useSyncExternalStore(
+    emptySubscribe,
+    getTodayJakartaDateString,
+    () => ""
+  );
   const [submitted, setSubmitted] = useState(false);
   const [cooldown, setCooldown] = useState(0);
   const [apiError, setApiError] = useState<string | null>(null);
   const [receipt, setReceipt] = useState<BookingReceipt | null>(null);
+  const [copiedCode, setCopiedCode] = useState(false);
   const [lastWaUrl, setLastWaUrl] = useState<string | null>(null);
+
+  // Real-time slot availability state
+  const [availability, setAvailability] = useState<AvailabilityInfo | null>(null);
+  const [loadingTanggal, setLoadingTanggal] = useState<string | null>(null);
+  const isDateReady =
+    /^\d{4}-\d{2}-\d{2}$/.test(form.tanggal) && (!minDate || form.tanggal >= minDate);
+  const availabilityLoading = isDateReady && loadingTanggal === form.tanggal;
+
+  // Optional Cloudflare Turnstile state
+  const [turnstileToken, setTurnstileToken] = useState<string | null>(null);
+  const turnstileContainerRef = useRef<HTMLDivElement | null>(null);
+  const turnstileWidgetIdRef = useRef<string | null>(null);
+
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  // Parse unit count safely
+  const parsedJumlahRaw = Number(form.jumlah);
+  const isJumlahValidInt =
+    form.jumlah.trim() !== "" &&
+    Number.isInteger(parsedJumlahRaw) &&
+    parsedJumlahRaw >= 1 &&
+    parsedJumlahRaw <= MAX_UNITS_PER_DAY;
+  const qty = Math.min(Math.max(parseInt(form.jumlah, 10) || 1, 1), MAX_UNITS_PER_DAY);
+  const remainingSlots =
+    availability && availability.tanggal === form.tanggal ? availability.remaining : null;
 
   // Inline validation
   const errors: Record<string, string> = {};
   if (touched.nama && !form.nama.trim()) errors.nama = "Nama wajib diisi";
   else if (touched.nama && form.nama.trim().length < 2) errors.nama = "Nama minimal 2 karakter";
-  else if (touched.nama && !/^[\p{L}\s\-.]+$/u.test(form.nama.trim())) errors.nama = "Nama hanya boleh huruf, spasi, titik, dan strip";
+  else if (touched.nama && !/^[\p{L}\s\-.]+$/u.test(form.nama.trim()))
+    errors.nama = "Nama hanya boleh huruf, spasi, titik, dan strip";
+
   if (touched.whatsapp && !form.whatsapp.trim()) errors.whatsapp = "Nomor WhatsApp wajib diisi";
-  else if (touched.whatsapp && !/^[0-9+\-\s]+$/.test(form.whatsapp.trim())) errors.whatsapp = "Format nomor WhatsApp tidak valid";
-  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length < 9) errors.whatsapp = "Nomor WhatsApp minimal 9 digit";
-  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length > 15) errors.whatsapp = "Nomor WhatsApp maksimal 15 digit";
+  else if (touched.whatsapp && !/^[0-9+\-\s]+$/.test(form.whatsapp.trim()))
+    errors.whatsapp = "Format nomor WhatsApp tidak valid";
+  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length < 9)
+    errors.whatsapp = "Nomor WhatsApp minimal 9 digit";
+  else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length > 15)
+    errors.whatsapp = "Nomor WhatsApp maksimal 15 digit";
+
   if (touched.paket && !form.paket) errors.paket = "Pilih paket terlebih dahulu";
+
   if (touched.tanggal && !form.tanggal) errors.tanggal = "Pilih tanggal sewa";
-  else if (touched.tanggal && minDate && form.tanggal < minDate) errors.tanggal = "Tanggal tidak boleh di masa lalu";
+  else if (touched.tanggal && minDate && form.tanggal < minDate)
+    errors.tanggal = "Tanggal tidak boleh di masa lalu";
+
+  if (!isJumlahValidInt) {
+    errors.jumlah = `Jumlah harus antara 1 sampai ${MAX_UNITS_PER_DAY} unit`;
+  } else if (remainingSlots === 0) {
+    errors.jumlah = "Kuota tanggal ini sudah penuh (0 unit tersisa)";
+  } else if (remainingSlots !== null && qty > remainingSlots) {
+    errors.jumlah = `Sisa slot tanggal ini hanya ${remainingSlots} unit`;
+  }
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
@@ -87,7 +159,10 @@ export default function BookingForm() {
   useEffect(() => {
     const onSelectPkg = (e: Event) => {
       const pkg = (e as CustomEvent<string>).detail;
-      if (typeof pkg === "string" && packages.includes(pkg)) {
+      if (
+        typeof pkg === "string" &&
+        (PACKAGE_OPTIONS as readonly string[]).includes(pkg)
+      ) {
         setForm((prev) => ({ ...prev, paket: pkg }));
         setTouched((prev) => ({ ...prev, paket: false }));
       }
@@ -96,21 +171,121 @@ export default function BookingForm() {
     return () => window.removeEventListener("oje:select-package", onSelectPkg);
   }, []);
 
+  // Cek slot ketersediaan real-time saat tanggal dipilih
+  useEffect(() => {
+    const selectedDate = form.tanggal;
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(selectedDate) || (minDate && selectedDate < minDate)) {
+      return;
+    }
+
+    const controller = new AbortController();
+
+    fetch(`/api/availability?tanggal=${encodeURIComponent(selectedDate)}`, {
+      signal: controller.signal,
+    })
+      .then((res) => (res.ok ? res.json() : null))
+      .then((json) => {
+        if (json?.success) {
+          setAvailability({
+            tanggal: json.tanggal,
+            maxUnits: json.maxUnits ?? MAX_UNITS_PER_DAY,
+            bookedUnits: json.bookedUnits ?? null,
+            remaining: json.remaining ?? null,
+          });
+        }
+      })
+      .catch((err) => {
+        if (err?.name !== "AbortError") {
+          setAvailability(null);
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setLoadingTanggal((prev) => (prev === selectedDate ? null : prev));
+        }
+      });
+
+    return () => controller.abort();
+  }, [form.tanggal, minDate]);
+
+  // Mount Cloudflare Turnstile jika NEXT_PUBLIC_TURNSTILE_SITE_KEY dikonfigurasi
+  useEffect(() => {
+    if (!TURNSTILE_SITE_KEY || !turnstileContainerRef.current) return;
+
+    let cancelled = false;
+    const renderWidget = () => {
+      if (cancelled || !turnstileContainerRef.current || !window.turnstile) return;
+      if (turnstileWidgetIdRef.current) return;
+
+      turnstileWidgetIdRef.current = window.turnstile.render(
+        turnstileContainerRef.current,
+        {
+          sitekey: TURNSTILE_SITE_KEY,
+          theme: "light",
+          callback: (token: string) => setTurnstileToken(token),
+          "expired-callback": () => setTurnstileToken(null),
+          "error-callback": () => setTurnstileToken(null),
+        }
+      );
+    };
+
+    if (window.turnstile) {
+      renderWidget();
+    } else {
+      const existingScript = document.querySelector<HTMLScriptElement>(
+        'script[data-turnstile="true"]'
+      );
+      if (existingScript) {
+        existingScript.addEventListener("load", renderWidget);
+      } else {
+        const script = document.createElement("script");
+        script.src =
+          "https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit";
+        script.async = true;
+        script.defer = true;
+        script.dataset.turnstile = "true";
+        script.addEventListener("load", renderWidget);
+        document.head.appendChild(script);
+      }
+    }
+
+    return () => {
+      cancelled = true;
+      if (turnstileWidgetIdRef.current && window.turnstile) {
+        window.turnstile.remove(turnstileWidgetIdRef.current);
+        turnstileWidgetIdRef.current = null;
+      }
+    };
+  }, []);
+
+  const resetTurnstile = () => {
+    if (TURNSTILE_SITE_KEY && turnstileWidgetIdRef.current && window.turnstile) {
+      window.turnstile.reset(turnstileWidgetIdRef.current);
+      setTurnstileToken(null);
+    }
+  };
+
   const handleChange = (
     e: React.ChangeEvent<
       HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
     >
   ) => {
-    setForm({ ...form, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    if (name === "tanggal") {
+      if (/^\d{4}-\d{2}-\d{2}$/.test(value) && (!minDate || value >= minDate)) {
+        setLoadingTanggal(value);
+      } else {
+        setLoadingTanggal(null);
+      }
+    }
+    setForm({ ...form, [name]: value });
   };
 
   const formatWAMessage = (bookingCode?: string) => {
-    // Sanitasi semua input sebelum masuk ke pesan WA
     const safeName = sanitize(form.nama, 100);
     const safeWA = sanitize(form.whatsapp, 20);
     const safePaket = sanitize(form.paket, 100);
     const safeCatatan = sanitize(form.catatan, 300);
-    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
 
     const lines = [
       "🏍️ *BOOKING OJE ATV KALIURANG*",
@@ -120,7 +295,7 @@ export default function BookingForm() {
       `📱 *No. WhatsApp*: ${safeWA}`,
       `🎯 *Paket*: ${safePaket}`,
       `📅 *Tanggal Sewa*: ${form.tanggal}`,
-      `🔢 *Jumlah Unit*: ${safeJumlah} unit`,
+      `🔢 *Jumlah Unit*: ${qty} unit`,
       safeCatatan ? `📝 *Catatan*: ${safeCatatan}` : null,
       "---------------------------------",
       "Halo Admin, saya sudah mengisi form booking di website. Mohon informasi ketersediaan jadwal & detail meeting point. Terima kasih! 🙏",
@@ -146,23 +321,26 @@ export default function BookingForm() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!form.nama || !form.whatsapp || !form.paket || !form.tanggal) return;
-    if (cooldown > 0) return;
+    if (cooldown > 0 || remainingSlots === 0) return;
+    if (TURNSTILE_SITE_KEY && !turnstileToken) {
+      setApiError("Harap selesaikan verifikasi keamanan terlebih dahulu.");
+      return;
+    }
 
     setSubmitted(true);
     setApiError(null);
     setReceipt(null);
+    setCopiedCode(false);
 
     const safeName = sanitize(form.nama, 100);
     const safeWA = sanitize(form.whatsapp, 20);
     const safeCatatan = form.catatan ? sanitize(form.catatan, 300) : "";
-    const safeJumlah = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
-    const selectedPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
+    const selectedPrice = getPackageUnitPrice(form.paket);
     const totalEstimasi = selectedPrice
-      ? `Rp ${(selectedPrice * safeJumlah).toLocaleString("id-ID")}`
+      ? `Rp ${(selectedPrice * qty).toLocaleString("id-ID")}`
       : "-";
 
     try {
-      // ── Step 1: Simpan ke database via API Route ──────────────────────
       const response = await fetch("/api/booking", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -171,8 +349,10 @@ export default function BookingForm() {
           whatsapp: safeWA,
           paket: form.paket,
           tanggal: form.tanggal,
-          jumlah: safeJumlah,
+          jumlah: qty,
           catatan: safeCatatan || null,
+          website: websiteHoneypot,
+          turnstileToken: turnstileToken || undefined,
         }),
       });
 
@@ -180,11 +360,11 @@ export default function BookingForm() {
 
       if (!response.ok || !result.success) {
         setApiError(result.error || "Terjadi kesalahan. Silakan coba lagi.");
+        resetTurnstile();
         setSubmitted(false);
         return;
       }
 
-      // ── Step 2: Siapkan pesan WhatsApp SEBELUM reset form ───────────────
       const bookingCode = result.bookingCode
         ? `#${result.bookingCode}`
         : result.bookingId
@@ -200,21 +380,33 @@ export default function BookingForm() {
         whatsapp: safeWA,
         paket: form.paket,
         tanggal: form.tanggal,
-        jumlah: safeJumlah,
+        jumlah: qty,
         estimasi: totalEstimasi,
         catatan: safeCatatan,
       });
 
-      // Reset form & validation touched state
+      // Kurangi tampilan slot sementara secara optimis
+      if (remainingSlots !== null) {
+        setAvailability((prev) =>
+          prev
+            ? {
+                ...prev,
+                remaining: Math.max(0, (prev.remaining ?? 0) - qty),
+                bookedUnits: (prev.bookedUnits ?? 0) + qty,
+              }
+            : null
+        );
+      }
+
       setForm({ nama: "", whatsapp: "", paket: "", tanggal: "", jumlah: "1", catatan: "" });
       setTouched({});
+      resetTurnstile();
 
-      // Coba buka WhatsApp otomatis (jika diizinkan popup browser)
       setTimeout(() => {
         try {
           window.open(waUrl, "_blank");
         } catch {
-          // Jika diblokir popup blocker, tombol manual di bawah sudah siap
+          // Tombol manual tersedia di kartu resi
         }
       }, 500);
 
@@ -222,8 +414,20 @@ export default function BookingForm() {
     } catch (err) {
       console.error("[BookingForm] Network error:", err);
       setApiError("Tidak dapat terhubung ke server. Periksa koneksi internet Anda.");
+      resetTurnstile();
     } finally {
       setSubmitted(false);
+    }
+  };
+
+  const handleCopyCode = async () => {
+    if (!receipt?.code) return;
+    try {
+      await navigator.clipboard.writeText(receipt.code);
+      setCopiedCode(true);
+      setTimeout(() => setCopiedCode(false), 2000);
+    } catch {
+      // Clipboard fallback diabaikan jika tidak diizinkan browser
     }
   };
 
@@ -238,7 +442,8 @@ export default function BookingForm() {
 
   const isValid = form.nama.trim() && form.whatsapp.trim() && form.paket && form.tanggal;
   const hasErrors = Object.keys(errors).length > 0;
-  const isBlocked = !isValid || hasErrors || submitted || cooldown > 0;
+  const turnstileMissing = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
+  const isBlocked = !isValid || hasErrors || submitted || cooldown > 0 || turnstileMissing;
 
   const inputBase =
     "w-full min-w-0 bg-white border text-[#1c1c1c] placeholder-gray-400 rounded-xl px-4 py-3 sm:py-3.5 outline-none transition-colors duration-200 text-base focus:ring-2 focus:ring-[#1c1c1c]/10";
@@ -246,13 +451,16 @@ export default function BookingForm() {
     `${inputBase} ${err ? "border-red-500 focus:border-red-500" : "border-gray-300 focus:border-[#1c1c1c]"}`;
   const labelClass = "block text-xs sm:text-sm font-bold text-[#1c1c1c]";
 
-  const unitPrice = form.paket.includes("350.000") ? 350000 : form.paket.includes("300.000") ? 300000 : 0;
-  const qty = Math.min(Math.max(parseInt(form.jumlah) || 1, 1), MAX_UNITS);
+  const unitPrice = getPackageUnitPrice(form.paket);
   const estimate = unitPrice
     ? `Rp ${(unitPrice * qty).toLocaleString("id-ID")}`
     : "Pilih paket terlebih dahulu";
+  const maxSelectableQty =
+    remainingSlots !== null && remainingSlots > 0
+      ? Math.min(MAX_UNITS_PER_DAY, remainingSlots)
+      : MAX_UNITS_PER_DAY;
   const setQty = (n: number) =>
-    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), MAX_UNITS)) }));
+    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), maxSelectableQty)) }));
 
   return (
     <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-clip">
@@ -272,7 +480,7 @@ export default function BookingForm() {
 
         {/* Error Feedback */}
         {apiError && (
-          <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
+          <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-center">
             <p className="text-red-700 text-sm font-medium">{apiError}</p>
           </div>
         )}
@@ -280,13 +488,33 @@ export default function BookingForm() {
         {/* Booking Receipt Card (Ticket) */}
         {receipt && (
           <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-8 shadow-sm flex flex-col gap-5">
-            <div className="flex flex-col items-center text-center gap-1 pb-4 border-b border-dashed border-gray-300">
+            <div className="flex flex-col items-center text-center gap-2 pb-4 border-b border-dashed border-gray-300">
               <span className="text-xs font-extrabold tracking-widest uppercase text-green-700">
                 Booking Tercatat
               </span>
-              <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c1c] tracking-tight break-all">
-                {receipt.code}
-              </h3>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <h3 className="text-2xl sm:text-3xl font-extrabold text-[#1c1c1c] tracking-tight break-all">
+                  {receipt.code}
+                </h3>
+                <button
+                  type="button"
+                  onClick={handleCopyCode}
+                  aria-label="Salin kode booking"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-gray-200 bg-gray-50 hover:bg-gray-100 text-xs font-bold text-gray-700 transition-colors cursor-pointer"
+                >
+                  {copiedCode ? (
+                    <>
+                      <Check className="w-3.5 h-3.5 text-green-600" />
+                      <span className="text-green-700">Tersalin</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy className="w-3.5 h-3.5" />
+                      <span>Salin</span>
+                    </>
+                  )}
+                </button>
+              </div>
               <p className="text-xs sm:text-sm text-gray-500">
                 Tunjukkan kode ini saat tiba di Basecamp Kaliurang
               </p>
@@ -348,7 +576,21 @@ export default function BookingForm() {
 
         {/* Form Card */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-10 shadow-sm">
-          <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6">
+          <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6 relative">
+            {/* Honeypot field tersembunyi untuk menjebak bot pengisi form otomatis */}
+            <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
+              <label htmlFor="website_hp">Website</label>
+              <input
+                type="text"
+                id="website_hp"
+                name="website"
+                tabIndex={-1}
+                autoComplete="off"
+                value={websiteHoneypot}
+                onChange={(e) => setWebsiteHoneypot(e.target.value)}
+              />
+            </div>
+
             <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 border-b border-gray-200">
               Data Pemesan
             </p>
@@ -401,7 +643,7 @@ export default function BookingForm() {
                 className={`${inputClass(errors.paket)} h-[50px] sm:h-[54px] cursor-pointer`}
               >
                 <option value="">Pilih paket ATV</option>
-                {packages.map((pkg) => (
+                {PACKAGE_OPTIONS.map((pkg) => (
                   <option key={pkg} value={pkg}>
                     {pkg}
                   </option>
@@ -425,11 +667,40 @@ export default function BookingForm() {
                   className={`${inputClass(errors.tanggal)} h-[50px] sm:h-[54px]`}
                 />
                 {errors.tanggal && <p className="text-red-600 text-xs font-medium">{errors.tanggal}</p>}
+
+                {/* Real-time slot availability badge */}
+                {availabilityLoading && (
+                  <p className="text-xs text-gray-500 font-medium">
+                    Mengecek sisa unit tersedia...
+                  </p>
+                )}
+                {!availabilityLoading &&
+                  availability &&
+                  availability.tanggal === form.tanggal &&
+                  availability.remaining !== null && (
+                    <p
+                      className={`text-xs font-semibold ${
+                        availability.remaining === 0
+                          ? "text-red-600"
+                          : availability.remaining <= 4
+                          ? "text-amber-600"
+                          : "text-emerald-700"
+                      }`}
+                    >
+                      {availability.remaining === 0
+                        ? "Kuota penuh (0 unit tersisa). Silakan pilih tanggal lain."
+                        : `Tersedia ${availability.remaining} dari ${availability.maxUnits} unit untuk tanggal ini`}
+                    </p>
+                  )}
               </div>
 
               <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
                 <label htmlFor="jumlah" className={labelClass}>Jumlah Unit</label>
-                <div className="flex items-center justify-between h-[50px] sm:h-[54px] border border-gray-300 rounded-xl px-1.5 bg-white">
+                <div
+                  className={`flex items-center justify-between h-[50px] sm:h-[54px] border rounded-xl px-1.5 bg-white ${
+                    errors.jumlah ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
                   <button
                     type="button"
                     onClick={() => setQty(qty - 1)}
@@ -445,21 +716,22 @@ export default function BookingForm() {
                     name="jumlah"
                     value={form.jumlah}
                     onChange={handleChange}
-                    onBlur={() => setQty(parseInt(form.jumlah) || 1)}
+                    onBlur={() => setQty(parseInt(form.jumlah, 10) || 1)}
                     min="1"
-                    max={MAX_UNITS}
+                    max={maxSelectableQty}
                     className="w-16 min-w-0 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                   />
                   <button
                     type="button"
                     onClick={() => setQty(qty + 1)}
-                    disabled={qty >= MAX_UNITS}
+                    disabled={qty >= maxSelectableQty || remainingSlots === 0}
                     aria-label="Tambah jumlah unit"
                     className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     +
                   </button>
                 </div>
+                {errors.jumlah && <p className="text-red-600 text-xs font-medium">{errors.jumlah}</p>}
               </div>
             </div>
 
@@ -499,6 +771,12 @@ export default function BookingForm() {
               </strong>
             </div>
 
+            {TURNSTILE_SITE_KEY && (
+              <div className="flex justify-center">
+                <div ref={turnstileContainerRef} />
+              </div>
+            )}
+
             <button
               type="submit"
               disabled={isBlocked}
@@ -527,7 +805,7 @@ export default function BookingForm() {
             </button>
 
             <p className="text-center text-[11px] sm:text-xs text-gray-500">
-              Maksimal {MAX_UNITS} unit per hari · Admin kami akan langsung merespon konfirmasi jadwal booking Anda.
+              Maksimal {MAX_UNITS_PER_DAY} unit per hari · Admin kami akan langsung merespon konfirmasi jadwal booking Anda.
             </p>
           </form>
         </div>

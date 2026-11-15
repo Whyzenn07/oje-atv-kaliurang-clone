@@ -35,15 +35,15 @@ const securityHeaders = [
       "default-src 'self'",
       // 'unsafe-eval' hanya aktif di development mode (diperlukan React Turbopack HMR untuk stacktrace)
       isDev
-        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval'"
-        : "script-src 'self' 'unsafe-inline'",
+        ? "script-src 'self' 'unsafe-inline' 'unsafe-eval' https://challenges.cloudflare.com"
+        : "script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com",
       "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
       "font-src 'self' https://fonts.gstatic.com",
       "img-src 'self' data: blob: https:",
       isDev
-        ? "connect-src 'self' https://*.supabase.co ws: wss:"
-        : "connect-src 'self' https://*.supabase.co",
-      "frame-src https://www.google.com https://maps.google.com https://www.youtube.com", // untuk embed maps & video
+        ? "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com ws: wss:"
+        : "connect-src 'self' https://*.supabase.co https://challenges.cloudflare.com",
+      "frame-src https://www.google.com https://maps.google.com https://www.youtube.com https://challenges.cloudflare.com", // untuk embed maps, video & Turnstile
       "object-src 'none'",
       "base-uri 'self'",
       "form-action 'self'",

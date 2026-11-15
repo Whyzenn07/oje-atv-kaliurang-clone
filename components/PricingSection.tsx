@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { CheckCircle2, Clock } from "lucide-react";
 import { WA_ORDER_LINK } from "@/lib/constants";
 
@@ -31,10 +32,12 @@ export default function PricingSection() {
       {/* Header Banner: Dark background with ATV overlay */}
       <div className="relative py-12 sm:py-20 md:py-24 overflow-hidden text-center">
         <div className="absolute inset-0">
-          <img
+          <Image
             src="/images/atv-kaliurang-merapi-4.jpeg"
             alt="Pricing background"
-            className="w-full h-full object-cover object-center"
+            fill
+            sizes="100vw"
+            className="object-cover object-center"
           />
           <div className="absolute inset-0 bg-black/80" />
         </div>
@@ -59,11 +62,13 @@ export default function PricingSection() {
               <div className="absolute top-4 left-0 w-[45%] h-[50%] bg-[#b51b41] rounded-2xl z-0" />
 
               {/* Main ATV photo */}
-              <div className="relative z-10 ml-5 sm:ml-8 mt-5 sm:mt-8 rounded-2xl overflow-hidden shadow-xl">
-                <img
+              <div className="relative z-10 ml-5 sm:ml-8 mt-5 sm:mt-8 rounded-2xl overflow-hidden shadow-xl h-[260px] sm:h-[380px] md:h-[460px]">
+                <Image
                   src="/images/atv-kaliurang-merapi-1.jpeg"
                   alt="ATV melintasi medan Kaliurang"
-                  className="w-full h-[260px] sm:h-[380px] md:h-[460px] object-cover"
+                  fill
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                  className="object-cover"
                 />
               </div>
 

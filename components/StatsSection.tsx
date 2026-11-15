@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Image from "next/image";
 import { Compass, Briefcase, Users, Trophy } from "lucide-react";
 
 const stats = [
@@ -141,10 +142,12 @@ export default function StatsSection() {
     <section className="relative py-16 sm:py-24 md:py-28 overflow-hidden bg-[#1c1c1c]" ref={ref}>
       {/* Parallax-style background image with deep dark gradient overlay */}
       <div className="absolute inset-0">
-        <img
+        <Image
           src="/images/atv-kaliurang-merapi-4.jpeg"
           alt="Stats background"
-          className="w-full h-full object-cover object-center brightness-60"
+          fill
+          sizes="100vw"
+          className="object-cover object-center brightness-60"
         />
         <div className="absolute inset-0 bg-gradient-to-b from-black/85 via-black/75 to-black/90 backdrop-blur-[1px]" />
       </div>

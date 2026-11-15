@@ -1,13 +1,17 @@
 "use client";
 
+import Image from "next/image";
 import { Phone, ArrowRight } from "lucide-react";
 import { TiktokIcon, InstagramIcon } from "./SocialIcons";
 import { CONTACT, WA_LINK } from "@/lib/constants";
 
 const navLinks = [
   { label: "Home", href: "#hero" },
+  { label: "Profil", href: "#profil" },
   { label: "Harga", href: "#harga" },
+  { label: "Booking", href: "#booking" },
   { label: "Gallery", href: "#gallery" },
+  { label: "Lokasi", href: "#lokasi" },
   { label: "Kontak", href: "#kontak" },
 ];
 
@@ -35,9 +39,11 @@ export default function FooterSection() {
               className="inline-block mb-4 transition-transform hover:opacity-90"
               aria-label="OJE ATV Kaliurang Home"
             >
-              <img
+              <Image
                 src="/images/logos.png"
                 alt="O.J.E ATV KALIURANG"
+                width={160}
+                height={56}
                 className="h-12 sm:h-14 w-auto object-contain"
               />
             </a>
@@ -79,6 +85,7 @@ export default function FooterSection() {
               {navLinks.map((link) => (
                 <li key={link.href}>
                   <button
+                    type="button"
                     onClick={() => scrollTo(link.href)}
                     className="flex items-center gap-2.5 text-gray-300 hover:text-[#e3851b] text-sm font-medium transition-colors group cursor-pointer"
                   >

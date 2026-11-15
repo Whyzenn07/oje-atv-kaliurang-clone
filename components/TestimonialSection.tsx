@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Image from "next/image";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
 
 const testimonials = [
@@ -161,10 +162,12 @@ export default function TestimonialSection() {
                   {/* Bottom: Author Info + Burgundy Quotes */}
                   <div className="flex items-center justify-between pt-5 border-t border-gray-100/80">
                     <div className="flex items-center gap-3.5">
-                      <img
+                      <Image
                         src={t.avatar}
                         alt={t.name}
-                        className="w-13 h-13 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[#f6a440] shadow-md"
+                        width={56}
+                        height={56}
+                        className="w-13 h-13 sm:w-14 sm:h-14 rounded-full object-cover border-2 border-[#f6a440] shadow-md shrink-0"
                       />
                       <div className="text-left">
                         <p className="font-extrabold text-gray-900 text-base">
@@ -195,35 +198,42 @@ export default function TestimonialSection() {
         </div>
 
         {/* Carousel Navigation Controls (Arrows + Dots) */}
-        <div className="flex items-center justify-center gap-4 mt-12 sm:mt-14">
+        <div className="flex items-center justify-center gap-2 sm:gap-4 mt-12 sm:mt-14">
           <button
+            type="button"
             onClick={prevSlide}
             aria-label="Previous review"
-            className="w-11 h-11 rounded-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-[#b51b41] hover:border-[#b51b41] hover:text-white flex items-center justify-center transition-all duration-300 shadow-md active:scale-90"
+            className="w-11 h-11 rounded-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-[#b51b41] hover:border-[#b51b41] hover:text-white flex items-center justify-center transition-all duration-300 shadow-md active:scale-90 shrink-0"
           >
             <ChevronLeft className="w-5 h-5" />
           </button>
 
-          {/* Indicator Dots */}
-          <div className="flex items-center gap-2">
+          {/* Indicator Dots (visual ringkas dengan area sentuh >= 44px) */}
+          <div className="flex items-center gap-0.5">
             {[...Array(maxIndex + 1)].map((_, i) => (
               <button
+                type="button"
                 key={i}
                 onClick={() => setCurrentIdx(i)}
                 aria-label={`Slide ${i + 1}`}
-                className={`no-min-size transition-all duration-500 rounded-full block ${
-                  i === currentIdx
-                    ? "bg-[#b51b41] w-8 h-2.5 shadow-md shadow-red-900/30"
-                    : "bg-gray-300 hover:bg-gray-400 w-2.5 h-2.5"
-                }`}
-              />
+                className="flex items-center justify-center p-2 cursor-pointer"
+              >
+                <span
+                  className={`transition-all duration-500 rounded-full block ${
+                    i === currentIdx
+                      ? "bg-[#b51b41] w-8 h-2.5 shadow-md shadow-red-900/30"
+                      : "bg-gray-300 hover:bg-gray-400 w-2.5 h-2.5"
+                  }`}
+                />
+              </button>
             ))}
           </div>
 
           <button
+            type="button"
             onClick={nextSlide}
             aria-label="Next review"
-            className="w-11 h-11 rounded-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-[#b51b41] hover:border-[#b51b41] hover:text-white flex items-center justify-center transition-all duration-300 shadow-md active:scale-90"
+            className="w-11 h-11 rounded-full bg-white border-2 border-gray-200 text-gray-700 hover:bg-[#b51b41] hover:border-[#b51b41] hover:text-white flex items-center justify-center transition-all duration-300 shadow-md active:scale-90 shrink-0"
           >
             <ChevronRight className="w-5 h-5" />
           </button>

@@ -4,20 +4,28 @@
 -- Dashboard > SQL Editor > New query > Paste > Run
 -- ============================================================
 
--- 1. Buat tabel bookings
+-- 1. Buat tabel bookings (termasuk kolom terstruktur whatsapp, booking_code, estimasi_total)
 CREATE TABLE IF NOT EXISTS public.bookings (
-  id          UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
-  nama        VARCHAR(100)  NOT NULL,
-  paket       VARCHAR(100)  NOT NULL,
-  tanggal     DATE          NOT NULL,
-  jumlah      INTEGER       NOT NULL CHECK (jumlah >= 1 AND jumlah <= 15),
-  catatan     TEXT,
-  status      VARCHAR(20)   NOT NULL DEFAULT 'PENDING'
-                            CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED')),
-  ip_address  VARCHAR(45),
-  created_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
-  updated_at  TIMESTAMPTZ   NOT NULL DEFAULT NOW()
+  id              UUID          DEFAULT gen_random_uuid() PRIMARY KEY,
+  booking_code    VARCHAR(32),
+  nama            VARCHAR(100)  NOT NULL,
+  whatsapp        VARCHAR(20),
+  paket           VARCHAR(100)  NOT NULL,
+  tanggal         DATE          NOT NULL,
+  jumlah          INTEGER       NOT NULL CHECK (jumlah >= 1 AND jumlah <= 15),
+  estimasi_total  INTEGER,
+  catatan         TEXT,
+  status          VARCHAR(20)   NOT NULL DEFAULT 'PENDING'
+                                CHECK (status IN ('PENDING', 'CONFIRMED', 'CANCELLED')),
+  ip_address      VARCHAR(45),
+  created_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW(),
+  updated_at      TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
+
+-- Migrasi aman untuk tabel yang sudah ada sebelumnya
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS booking_code VARCHAR(32);
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS whatsapp VARCHAR(20);
+ALTER TABLE public.bookings ADD COLUMN IF NOT EXISTS estimasi_total INTEGER;
 
 -- 2. Aktifkan Row Level Security (firewall di level database)
 ALTER TABLE public.bookings ENABLE ROW LEVEL SECURITY;
@@ -41,10 +49,11 @@ CREATE POLICY "deny_public_update" ON public.bookings
 CREATE POLICY "deny_public_delete" ON public.bookings
   FOR DELETE USING (false);
 
--- 4. Index untuk query cepat berdasarkan tanggal dan status
-CREATE INDEX idx_bookings_tanggal  ON public.bookings (tanggal);
-CREATE INDEX idx_bookings_status   ON public.bookings (status);
-CREATE INDEX idx_bookings_created  ON public.bookings (created_at DESC);
+-- 4. Index untuk query cepat berdasarkan tanggal, status, dan kode booking
+CREATE INDEX IF NOT EXISTS idx_bookings_tanggal       ON public.bookings (tanggal);
+CREATE INDEX IF NOT EXISTS idx_bookings_status        ON public.bookings (status);
+CREATE INDEX IF NOT EXISTS idx_bookings_created       ON public.bookings (created_at DESC);
+CREATE INDEX IF NOT EXISTS idx_bookings_booking_code  ON public.bookings (booking_code);
 
 -- 5. Trigger untuk auto-update kolom updated_at
 CREATE OR REPLACE FUNCTION update_updated_at()

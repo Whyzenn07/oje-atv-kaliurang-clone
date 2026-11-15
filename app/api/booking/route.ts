@@ -16,9 +16,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { randomBytes } from "node:crypto";
 import { BookingSchema } from "@/lib/validations";
+import { MAX_UNITS_PER_DAY, getPackageUnitPrice } from "@/lib/constants";
 import { supabase } from "@/lib/supabase";
 import { sendBookingNotification } from "@/lib/mailer";
 import { appendBookingToGoogleSheets } from "@/lib/sheets";
+import { verifyTurnstileToken } from "@/lib/turnstile";
 import { isRateLimited, extractTrustedIp, MAX_BODY_BYTES } from "@/lib/ratelimit";
 
 // Hanya izinkan method POST
@@ -77,6 +79,15 @@ export async function POST(request: NextRequest) {
     );
   }
 
+  // ─── Layer 5b: Honeypot Anti-Bot Guard ───────────────────────────────────
+  const rawRecord = body as Record<string, unknown>;
+  if (typeof rawRecord.website === "string" && rawRecord.website.trim().length > 0) {
+    return NextResponse.json(
+      { success: false, error: "Permintaan ditolak." },
+      { status: 400 }
+    );
+  }
+
   // ─── Layer 6: Validasi Server-Side (Zod) ─────────────────────────────────
   // TIDAK kirim details[] ke client — cegah info disclosure tentang struktur internal
   const parsed = BookingSchema.safeParse(body);
@@ -92,6 +103,15 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data;
 
+  // ─── Layer 6a: Verifikasi Cloudflare Turnstile (jika dikonfigurasi) ─────
+  const turnstileCheck = await verifyTurnstileToken(data.turnstileToken, ip);
+  if (!turnstileCheck.success) {
+    return NextResponse.json(
+      { success: false, error: turnstileCheck.error || "Verifikasi keamanan gagal." },
+      { status: 403 }
+    );
+  }
+
   // ─── Layer 6b: Rate Limiting (per-IP + global flood guard) ───────────────
   // Dijalankan SETELAH validasi lolos, sehingga salah ketik form (422) tidak
   // menghabiskan kuota pelanggan sah. Request tak valid sudah murah ditolak (maks 8 KB).
@@ -106,7 +126,6 @@ export async function POST(request: NextRequest) {
   }
 
   // ─── Layer 7: Cek Kuota Unit per Tanggal (Maks 15 unit/hari) ───────────────
-  const MAX_ATV_PER_DAY = 15;
   try {
     const { data: existingBookings, error: quotaErr } = await supabase
       .from("bookings")
@@ -116,8 +135,8 @@ export async function POST(request: NextRequest) {
 
     if (!quotaErr && existingBookings) {
       const bookedUnits = existingBookings.reduce((sum, item) => sum + (item.jumlah || 0), 0);
-      if (bookedUnits + data.jumlah > MAX_ATV_PER_DAY) {
-        const remaining = Math.max(0, MAX_ATV_PER_DAY - bookedUnits);
+      if (bookedUnits + data.jumlah > MAX_UNITS_PER_DAY) {
+        const remaining = Math.max(0, MAX_UNITS_PER_DAY - bookedUnits);
         return NextResponse.json(
           {
             success: false,
@@ -137,12 +156,13 @@ export async function POST(request: NextRequest) {
   let bookingId: string;
   let createdAt: string;
 
-  // Buat kode booking rapi, contoh: OJE-1120-A7K
+  // Buat kode booking rapi, contoh: OJE-1120-A7K9M
   const cleanDate = data.tanggal.replace(/-/g, "").slice(4); // MMDD
   const randChars = Array.from(randomBytes(5), (b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
   const humanBookingCode = `OJE-${cleanDate}-${randChars}`;
+  const estimasiTotal = getPackageUnitPrice(data.paket) * data.jumlah;
 
-  // Catat nomor WhatsApp di catatan jika kolom whatsapp belum ada di Supabase
+  // Fallback format catatan apabila skema Supabase belum di-migrate ke kolom terpisah
   const combinedCatatan = [
     `[WA: ${data.whatsapp}] [KODE: ${humanBookingCode}]`,
     data.catatan ? data.catatan : null,
@@ -151,19 +171,47 @@ export async function POST(request: NextRequest) {
     .join(" - ");
 
   try {
-    const { data: inserted, error: dbError } = await supabase
+    let { data: inserted, error: dbError } = await supabase
       .from("bookings")
       .insert({
+        booking_code: humanBookingCode,
         nama: data.nama,
+        whatsapp: data.whatsapp,
         paket: data.paket,
         tanggal: data.tanggal,
         jumlah: data.jumlah,
-        catatan: combinedCatatan,
+        estimasi_total: estimasiTotal,
+        catatan: data.catatan || null,
         status: "PENDING",
         ip_address: ip,
       })
       .select()
       .single();
+
+    // Graceful fallback jika kolom baru (booking_code/whatsapp/estimasi_total) belum dimigrasi di DB
+    if (
+      dbError &&
+      (dbError.code === "42703" ||
+        dbError.code === "PGRST204" ||
+        /column|schema cache/i.test(dbError.message || ""))
+    ) {
+      console.warn("[API/booking] Schema fallback insert:", dbError.message);
+      const legacyRes = await supabase
+        .from("bookings")
+        .insert({
+          nama: data.nama,
+          paket: data.paket,
+          tanggal: data.tanggal,
+          jumlah: data.jumlah,
+          catatan: combinedCatatan,
+          status: "PENDING",
+          ip_address: ip,
+        })
+        .select()
+        .single();
+      inserted = legacyRes.data;
+      dbError = legacyRes.error;
+    }
 
     if (dbError || !inserted) {
       console.warn("[API/booking] Supabase unavailable/paused, using fallback ID:", dbError?.message || dbError);
@@ -183,9 +231,9 @@ export async function POST(request: NextRequest) {
         0
       );
 
-      if (totalAfterInsert > MAX_ATV_PER_DAY) {
+      if (totalAfterInsert > MAX_UNITS_PER_DAY) {
         await supabase.from("bookings").delete().eq("id", inserted.id);
-        const remainingBefore = Math.max(0, MAX_ATV_PER_DAY - (totalAfterInsert - data.jumlah));
+        const remainingBefore = Math.max(0, MAX_UNITS_PER_DAY - (totalAfterInsert - data.jumlah));
         return NextResponse.json(
           {
             success: false,

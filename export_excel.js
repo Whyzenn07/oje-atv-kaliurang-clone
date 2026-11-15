@@ -47,21 +47,29 @@ async function exportToCSV() {
     "Paket ATV",
     "Tanggal Sewa",
     "Jumlah Unit",
+    "Estimasi Total (Rp)",
     "Catatan Khusus",
     "Status",
     "Waktu Masuk",
   ];
 
   const rows = data.map((item) => {
-    let wa = "-";
-    let kode = item.id.substring(0, 8).toUpperCase();
+    let wa = item.whatsapp || "-";
+    let kode = item.booking_code || item.id.substring(0, 8).toUpperCase();
     let catatanBersih = item.catatan || "";
 
-    const waMatch = item.catatan?.match(/\[WA:\s*([^\]]+)\]/);
-    if (waMatch) wa = waMatch[1].trim();
+    if (wa === "-") {
+      const waMatch = item.catatan?.match(/\[WA:\s*([^\]]+)\]/);
+      if (waMatch) wa = waMatch[1].trim();
+    }
 
-    const kodeMatch = item.catatan?.match(/\[KODE:\s*([^\]]+)\]/);
-    if (kodeMatch) kode = kodeMatch[1].trim();
+    if (!item.booking_code) {
+      const kodeMatch = item.catatan?.match(/\[KODE:\s*([^\]]+)\]/);
+      if (kodeMatch) kode = kodeMatch[1].trim();
+    }
+
+    const unitPrice = String(item.paket || "").includes("350.000") ? 350000 : 300000;
+    const estimasi = item.estimasi_total ?? unitPrice * (Number(item.jumlah) || 1);
 
     catatanBersih = catatanBersih
       .replace(/\[WA:[^\]]+\]/g, "")
@@ -79,6 +87,7 @@ async function exportToCSV() {
       item.paket,
       item.tanggal,
       item.jumlah,
+      estimasi,
       catatanBersih || "-",
       item.status,
       dateFormatted,

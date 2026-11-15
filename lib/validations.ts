@@ -4,11 +4,7 @@
  * Validasi ini tidak bisa dibypass dari browser, berbeda dengan HTML required
  */
 import { z } from "zod";
-
-const VALID_PACKAGES = [
-  "ATV Single (Rp 300.000 / 2 Jam)",
-  "ATV Boncengan (Rp 350.000 / 2 Jam)",
-] as const;
+import { MAX_UNITS_PER_DAY, PACKAGE_OPTIONS, getTodayJakartaDateString } from "./constants";
 
 export const BookingSchema = z.object({
   nama: z
@@ -25,7 +21,7 @@ export const BookingSchema = z.object({
     .refine((digits) => digits.length <= 15, "Nomor WhatsApp maksimal 15 digit")
     .transform((digits) => (digits.startsWith("0") ? `62${digits.slice(1)}` : digits)),
 
-  paket: z.enum(VALID_PACKAGES, {
+  paket: z.enum(PACKAGE_OPTIONS, {
     error: "Paket tidak valid",
   }),
 
@@ -33,17 +29,14 @@ export const BookingSchema = z.object({
     .string()
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Format tanggal tidak valid (YYYY-MM-DD)")
     .refine((date) => {
-      const todayJakarta = new Date().toLocaleDateString("en-CA", {
-        timeZone: "Asia/Jakarta",
-      });
-      return date >= todayJakarta;
+      return date >= getTodayJakartaDateString();
     }, "Tanggal tidak boleh di masa lalu"),
 
   jumlah: z
     .number()
     .int("Jumlah harus bilangan bulat")
     .min(1, "Minimal 1 unit")
-    .max(15, "Maksimal 15 unit per hari"),
+    .max(MAX_UNITS_PER_DAY, `Maksimal ${MAX_UNITS_PER_DAY} unit per hari`),
 
   catatan: z
     .string()
@@ -51,6 +44,12 @@ export const BookingSchema = z.object({
     .optional()
     .nullable()
     .default(null),
+
+  turnstileToken: z
+    .string()
+    .max(2048)
+    .optional()
+    .nullable(),
 });
 
 export type BookingInput = z.infer<typeof BookingSchema>;

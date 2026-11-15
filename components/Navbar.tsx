@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Image from "next/image";
 import { Menu, X, Phone } from "lucide-react";
 import { CONTACT, WA_ORDER_LINK } from "@/lib/constants";
 
@@ -43,8 +44,15 @@ export default function Navbar() {
     const handleResize = () => {
       if (window.innerWidth >= 768) setMenuOpen(false);
     };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMenuOpen(false);
+    };
     window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
+    window.addEventListener("keydown", handleKeyDown);
+    return () => {
+      window.removeEventListener("resize", handleResize);
+      window.removeEventListener("keydown", handleKeyDown);
+    };
   }, []);
 
   const scrollTo = (href: string) => {
@@ -72,12 +80,16 @@ export default function Navbar() {
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between gap-3">
         {/* Logo */}
         <button
+          type="button"
           onClick={() => scrollTo("#hero")}
           className="flex items-center gap-2 sm:gap-3 shrink-0 text-left focus:outline-none"
         >
-          <img
+          <Image
             src="/images/logos.png"
             alt="OJE ATV Kaliurang"
+            width={160}
+            height={56}
+            priority
             className="h-9 sm:h-12 md:h-14 w-auto object-contain drop-shadow"
           />
         </button>
@@ -92,6 +104,7 @@ export default function Navbar() {
             return (
               <li key={link.href}>
                 <button
+                  type="button"
                   onClick={() => scrollTo(link.href)}
                   className={`whitespace-nowrap text-sm lg:text-base font-bold transition-colors duration-200 drop-shadow ${
                     isActive
@@ -138,8 +151,11 @@ export default function Navbar() {
             <Phone className="w-4 h-4 fill-white" />
           </a>
           <button
+            type="button"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label="Toggle menu"
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-drawer"
             className="w-10 h-10 rounded-xl bg-white/10 active:bg-white/20 text-white flex items-center justify-center focus:outline-none"
           >
             {menuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
@@ -149,6 +165,7 @@ export default function Navbar() {
 
       {/* Mobile menu dropdown with smooth Flexbox accordion & unconstrained height */}
       <div
+        id="mobile-nav-drawer"
         className={`md:hidden transition-all duration-300 ease-in-out ${
           menuOpen
             ? "max-h-[calc(100dvh-76px)] overflow-y-auto overscroll-contain opacity-100 mt-2 border-t border-white/10"

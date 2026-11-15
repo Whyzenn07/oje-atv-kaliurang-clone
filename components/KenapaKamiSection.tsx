@@ -1,5 +1,7 @@
 "use client";
 
+import Image from "next/image";
+
 const cards = [
   {
     icon: "/images/Web-designing-service-icon.png",
@@ -46,9 +48,11 @@ export default function KenapaKamiSection() {
               {/* Icon box using exact Elementor original icons with professional bounce/scale */}
               <div className="w-20 h-20 mb-5 flex items-center justify-center relative">
                 <div className="absolute inset-0 bg-red-50/50 rounded-2xl opacity-0 group-hover:opacity-100 scale-75 group-hover:scale-100 transition-all duration-300 -z-10" />
-                <img
+                <Image
                   src={card.icon}
                   alt={card.title}
+                  width={64}
+                  height={64}
                   className="w-16 h-16 object-contain group-hover:scale-115 group-hover:-rotate-3 group-hover:drop-shadow-md transition-all duration-300"
                 />
               </div>

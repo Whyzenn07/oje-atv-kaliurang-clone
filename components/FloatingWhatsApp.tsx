@@ -14,7 +14,7 @@ export default function FloatingWhatsApp() {
       className="wa-float-btn fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-3"
     >
       {/* Tooltip label (desktop only) */}
-      <span className="hidden md:block opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
+      <span className="pointer-events-none hidden md:block opacity-0 group-hover:opacity-100 translate-x-2 group-hover:translate-x-0 transition-all duration-300 bg-gray-900 text-white text-xs font-bold px-3 py-1.5 rounded-lg shadow-xl whitespace-nowrap">
         Chat WhatsApp
       </span>
 

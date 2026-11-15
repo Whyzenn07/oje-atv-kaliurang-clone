@@ -99,7 +99,8 @@ export async function sendBookingNotification(
     return { success: true };
   }
 
-  const tanggalFormatted = new Date(booking.tanggal).toLocaleDateString("id-ID", {
+  const tanggalFormatted = new Date(`${booking.tanggal}T00:00:00+07:00`).toLocaleDateString("id-ID", {
+    timeZone: "Asia/Jakarta",
     weekday: "long",
     year: "numeric",
     month: "long",

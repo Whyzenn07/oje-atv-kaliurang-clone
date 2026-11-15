@@ -14,6 +14,7 @@
  */
 
 import { NextRequest, NextResponse } from "next/server";
+import { randomBytes } from "node:crypto";
 import { BookingSchema } from "@/lib/validations";
 import { supabase } from "@/lib/supabase";
 import { sendBookingNotification } from "@/lib/mailer";
@@ -48,17 +49,6 @@ export async function POST(request: NextRequest) {
   const isVercel = !!process.env.VERCEL;
   const forwardedFor = request.headers.get("x-forwarded-for");
   const ip = extractTrustedIp(forwardedFor, isVercel);
-
-  // ─── Layer 4: Rate Limiting (per-IP + global flood guard) ────────────────
-  if (isRateLimited(ip)) {
-    return NextResponse.json(
-      {
-        success: false,
-        error: "Terlalu banyak permintaan. Silakan coba lagi dalam 1 jam.",
-      },
-      { status: 429 }
-    );
-  }
 
   // ─── Layer 5: Parse Body JSON ─────────────────────────────────────────────
   let body: unknown;
@@ -102,6 +92,19 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data;
 
+  // ─── Layer 6b: Rate Limiting (per-IP + global flood guard) ───────────────
+  // Dijalankan SETELAH validasi lolos, sehingga salah ketik form (422) tidak
+  // menghabiskan kuota pelanggan sah. Request tak valid sudah murah ditolak (maks 8 KB).
+  if (isRateLimited(ip)) {
+    return NextResponse.json(
+      {
+        success: false,
+        error: "Terlalu banyak permintaan. Silakan coba lagi dalam 1 jam.",
+      },
+      { status: 429 }
+    );
+  }
+
   // ─── Layer 7: Cek Kuota Unit per Tanggal (Maks 15 unit/hari) ───────────────
   const MAX_ATV_PER_DAY = 15;
   try {
@@ -136,7 +139,7 @@ export async function POST(request: NextRequest) {
 
   // Buat kode booking rapi, contoh: OJE-1120-A7K
   const cleanDate = data.tanggal.replace(/-/g, "").slice(4); // MMDD
-  const randChars = Math.random().toString(36).substring(2, 5).toUpperCase();
+  const randChars = Array.from(randomBytes(5), (b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
   const humanBookingCode = `OJE-${cleanDate}-${randChars}`;
 
   // Catat nomor WhatsApp di catatan jika kolom whatsapp belum ada di Supabase

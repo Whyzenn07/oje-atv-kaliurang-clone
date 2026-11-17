@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { MapPin, Clock, Navigation, Phone } from "lucide-react";
-import { CONTACT } from "@/lib/constants";
+import { CONTACT, SITE_ASSETS } from "@/lib/constants";
 
 const operatingHours = [
   { day: "Senin – Jumat", hours: "08:00 – 17:00 WIB" },
@@ -17,7 +17,7 @@ export default function LocationSection() {
       <div className="relative py-10 sm:py-16 text-center overflow-hidden">
         <div className="absolute inset-0">
           <Image
-            src="/images/atv-kaliurang-merapi-5.jpeg"
+            src={SITE_ASSETS.location.bannerImage}
             alt="Lokasi ATV Kaliurang"
             fill
             sizes="100vw"
@@ -96,7 +96,7 @@ export default function LocationSection() {
             {/* Navigation Buttons */}
             <div className="flex flex-col sm:flex-row gap-3">
               <a
-                href="https://maps.app.goo.gl/q4Kcr7RGfrGbpnJR7"
+                href={SITE_ASSETS.location.mapsShareUrl}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="flex-1 inline-flex items-center justify-center gap-2.5 bg-[#b51b41] hover:bg-[#8b1626] active:scale-95 text-white font-extrabold text-sm sm:text-base py-4 rounded-xl shadow-lg transition-all group"
@@ -116,7 +116,7 @@ export default function LocationSection() {
           {/* Right: Google Maps Embed */}
           <div className="w-full lg:flex-1 min-w-0 rounded-2xl overflow-hidden border border-white/10 shadow-2xl aspect-square sm:aspect-[4/3]">
             <iframe
-              src="https://maps.google.com/maps?q=-7.59972,110.42861+(OJE+ATV+Kaliurang)&hl=id&z=16&output=embed"
+              src={SITE_ASSETS.location.mapsEmbedUrl}
               width="100%"
               height="100%"
               style={{ border: 0 }}

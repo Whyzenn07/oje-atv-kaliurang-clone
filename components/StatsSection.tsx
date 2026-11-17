@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Compass, Briefcase, Users, Trophy } from "lucide-react";
+import { SITE_ASSETS } from "@/lib/constants";
 
 const stats = [
   {
@@ -143,7 +144,7 @@ export default function StatsSection() {
       {/* Parallax-style background image with deep dark gradient overlay */}
       <div className="absolute inset-0">
         <Image
-          src="/images/atv-kaliurang-merapi-4.jpeg"
+          src={SITE_ASSETS.statsBgImage}
           alt="Stats background"
           fill
           sizes="100vw"

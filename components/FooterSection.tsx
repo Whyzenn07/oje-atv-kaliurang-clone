@@ -3,7 +3,7 @@
 import Image from "next/image";
 import { Phone, ArrowRight } from "lucide-react";
 import { TiktokIcon, InstagramIcon } from "./SocialIcons";
-import { CONTACT, WA_LINK } from "@/lib/constants";
+import { CONTACT, SITE_ASSETS, WA_LINK } from "@/lib/constants";
 
 const navLinks = [
   { label: "Home", href: "#hero" },
@@ -40,7 +40,7 @@ export default function FooterSection() {
               aria-label="OJE ATV Kaliurang Home"
             >
               <Image
-                src="/images/logos.png"
+                src={SITE_ASSETS.logo}
                 alt="O.J.E ATV KALIURANG"
                 width={160}
                 height={56}
@@ -56,7 +56,7 @@ export default function FooterSection() {
             {/* Social icons */}
             <div className="flex items-center gap-3">
               <a
-                href="https://www.tiktok.com/@oje_atvkaliurang"
+                href={CONTACT.TIKTOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="TIKTOK OJE ATV Kaliurang"
@@ -65,7 +65,7 @@ export default function FooterSection() {
                 <TiktokIcon className="w-5 h-5 text-white" />
               </a>
               <a
-                href="https://www.instagram.com/oje_atvkaliurang/"
+                href={CONTACT.INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 aria-label="Instagram OJE ATV Kaliurang"
@@ -111,7 +111,7 @@ export default function FooterSection() {
 
             {/* Google Map link */}
             <a
-              href="https://maps.app.goo.gl/q4Kcr7RGfrGbpnJR7"
+              href={SITE_ASSETS.location.mapsShareUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="text-[#e3851b] hover:text-[#f59e0b] font-extrabold text-xs sm:text-sm tracking-wider uppercase inline-block mb-6 transition-colors hover:underline"

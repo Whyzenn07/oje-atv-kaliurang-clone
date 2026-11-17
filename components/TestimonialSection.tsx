@@ -3,39 +3,9 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { Star, ChevronLeft, ChevronRight } from "lucide-react";
+import { SITE_ASSETS } from "@/lib/constants";
 
-const testimonials = [
-  {
-    text: "ATV KALIURANG adalah tambahan yang bagus untuk kegiatan musim panas keluarga kami.",
-    name: "Pujiatsuti",
-    role: "Toro",
-    avatar: "/images/atv-kaliurang-merapi-12.jpeg",
-  },
-  {
-    text: "Tur ATV sangat mengagumkan! Saya dan keluarga saya menikmati setiap momen perjalanan kami. Kami ingin mengucapkan terima kasih atas pelayanan Anda yang luar biasa",
-    name: "Andrew",
-    role: "Manager",
-    avatar: "/images/ATV-KALIURANG-3.jpeg",
-  },
-  {
-    text: "Ini adalah pertama kalinya saya memesan aktivitas ATV. Harganya masuk akal.",
-    name: "Alina Ja",
-    role: "Pns",
-    avatar: "/images/atv-kaliurang-merapi-6.jpeg",
-  },
-  {
-    text: "Pemandu ramah, sabar dan sangat berpengalaman. Jalur airnya seru banget dan dokumentasi fotonya mantap!",
-    name: "Bambang Wijaya",
-    role: "Traveler",
-    avatar: "/images/atv-kaliurang-merapi-1.jpeg",
-  },
-  {
-    text: "Pengalaman terbaik berlibur ke Kaliurang bareng rekan kantor. Unit ATV-nya prima dan terawat!",
-    name: "Rizky Pratama",
-    role: "Karyawan Swasta",
-    avatar: "/images/atv-kaliurang-merapi-2.jpeg",
-  },
-];
+const testimonials = SITE_ASSETS.testimonials;
 
 export default function TestimonialSection() {
   const [currentIdx, setCurrentIdx] = useState(0);

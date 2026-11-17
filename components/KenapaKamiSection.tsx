@@ -1,24 +1,9 @@
 "use client";
 
 import Image from "next/image";
+import { SITE_ASSETS } from "@/lib/constants";
 
-const cards = [
-  {
-    icon: "/images/Web-designing-service-icon.png",
-    title: "Keselamatan",
-    desc: "Pemandu kami terlatih dalam pertolongan pertama dan keselamatan serta profesional yang berpengalaman.",
-  },
-  {
-    icon: "/images/Web-developement-services-icon.png",
-    title: "Reservasi 24 Jam",
-    desc: "Layanan pemesanan online tersedia 24 jam setiap hari (operasional trek 07:00 – 17:00 WIB), sehingga Anda dapat memesan kapan saja.",
-  },
-  {
-    icon: "/images/UI-UX-design-services-icon.png",
-    title: "Fasilitas",
-    desc: "Kami memiliki fasilitas, peralatan, dan layanan terbaik sebelum, selama, dan setelah petualangan Anda.",
-  },
-];
+const cards = SITE_ASSETS.kenapaKamiCards;
 
 export default function KenapaKamiSection() {
   return (

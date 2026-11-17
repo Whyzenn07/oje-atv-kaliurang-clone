@@ -3,21 +3,9 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import Image from "next/image";
 import { X, ZoomIn, ChevronLeft, ChevronRight } from "lucide-react";
+import { SITE_ASSETS } from "@/lib/constants";
 
-const galleryImages = [
-  { src: "/images/atv-kaliurang-merapi-1.jpeg", alt: "ATV Kaliurang Merapi 1" },
-  { src: "/images/atv-kaliurang-merapi-2.jpeg", alt: "ATV Kaliurang Merapi 2" },
-  { src: "/images/atv-kaliurang-merapi-3.jpeg", alt: "ATV Kaliurang Merapi 3" },
-  { src: "/images/atv-kaliurang-merapi-4.jpeg", alt: "ATV Kaliurang Merapi 4" },
-  { src: "/images/atv-kaliurang-merapi-5.jpeg", alt: "ATV Kaliurang Merapi 5" },
-  { src: "/images/atv-kaliurang-merapi-6.jpeg", alt: "ATV Kaliurang Merapi 6" },
-  { src: "/images/atv-kaliurang-merapi-7.jpeg", alt: "ATV Kaliurang Merapi 7" },
-  { src: "/images/atv-kaliurang-merapi-9.jpeg", alt: "ATV Kaliurang Merapi 9" },
-  { src: "/images/atv-kaliurang-merapi-10.jpeg", alt: "ATV Kaliurang Merapi 10" },
-  { src: "/images/atv-kaliurang-merapi-11.jpeg", alt: "ATV Kaliurang Merapi 11" },
-  { src: "/images/atv-kaliurang-merapi-12.jpeg", alt: "ATV Kaliurang Merapi 12" },
-  { src: "/images/ATV-KALIURANG-6.jpeg", alt: "ATV Kaliurang Merapi Group" },
-];
+const galleryImages = SITE_ASSETS.galleryImages;
 
 export default function GallerySection() {
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null);

@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import { CheckCircle2, Clock } from "lucide-react";
-import { WA_ORDER_LINK } from "@/lib/constants";
+import { SITE_ASSETS, WA_ORDER_LINK } from "@/lib/constants";
 
 const trek = [
   "Kaliurang Explore",
@@ -33,7 +33,7 @@ export default function PricingSection() {
       <div className="relative py-12 sm:py-20 md:py-24 overflow-hidden text-center">
         <div className="absolute inset-0">
           <Image
-            src="/images/atv-kaliurang-merapi-4.jpeg"
+            src={SITE_ASSETS.pricing.bannerImage}
             alt="Pricing background"
             fill
             sizes="100vw"
@@ -64,7 +64,7 @@ export default function PricingSection() {
               {/* Main ATV photo */}
               <div className="relative z-10 ml-5 sm:ml-8 mt-5 sm:mt-8 rounded-2xl overflow-hidden shadow-xl h-[260px] sm:h-[380px] md:h-[460px]">
                 <Image
-                  src="/images/atv-kaliurang-merapi-1.jpeg"
+                  src={SITE_ASSETS.pricing.mainImage}
                   alt="ATV melintasi medan Kaliurang"
                   fill
                   sizes="(max-width: 1024px) 100vw, 50vw"

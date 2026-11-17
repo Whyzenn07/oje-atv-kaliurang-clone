@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { Manrope, Montserrat } from "next/font/google";
-import { SITE_URL } from "@/lib/constants";
+import { CONTACT, SITE_ASSETS, SITE_URL } from "@/lib/constants";
 import "./globals.css";
 
 const manrope = Manrope({
@@ -36,8 +36,8 @@ export const metadata: Metadata = {
     "Harga ATV Kaliurang",
   ],
   icons: {
-    icon: "/images/logos.png",
-    apple: "/images/logos.png",
+    icon: SITE_ASSETS.logo,
+    apple: SITE_ASSETS.logo,
   },
   metadataBase: new URL(SITE_URL),
   alternates: {
@@ -51,7 +51,7 @@ export const metadata: Metadata = {
     url: `${SITE_URL}/`,
     images: [
       {
-        url: "/images/ATV-KALIURANG-1.jpeg",
+        url: SITE_ASSETS.ogImage,
         width: 1200,
         height: 630,
         alt: "ATV Kaliurang Merapi",
@@ -64,7 +64,7 @@ export const metadata: Metadata = {
     title: "O.J.E – Atv Kaliurang Merapi",
     description:
       "Jelajahi Hutan & Sungai Kaliurang Merapi bersama OJE ATV. Paket mulai 300K.",
-    images: ["/images/ATV-KALIURANG-1.jpeg"],
+    images: [SITE_ASSETS.ogImage],
   },
   robots: {
     index: true,
@@ -85,7 +85,7 @@ const jsonLd = {
   url: SITE_URL,
   telephone: "+6281226983990",
   priceRange: "Rp 300.000 - Rp 350.000",
-  image: `${SITE_URL}/images/ATV-KALIURANG-1.jpeg`,
+  image: `${SITE_URL}${SITE_ASSETS.ogImage}`,
   address: {
     "@type": "PostalAddress",
     streetAddress: "Kaliurang Timur, RT.05/RW15, Kaliurang, Hargobinangun",
@@ -113,10 +113,7 @@ const jsonLd = {
       closes: "17:00",
     },
   ],
-  sameAs: [
-    "https://www.tiktok.com/@oje_atvkaliurang",
-    "https://www.instagram.com/oje_atvkaliurang/",
-  ],
+  sameAs: [CONTACT.TIKTOK_URL, CONTACT.INSTAGRAM_URL],
 };
 
 export default function RootLayout({

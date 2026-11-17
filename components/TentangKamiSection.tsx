@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Play, X } from "lucide-react";
+import { SITE_ASSETS, toYoutubeEmbedUrl } from "@/lib/constants";
 
 export default function TentangKamiSection() {
   const [videoOpen, setVideoOpen] = useState(false);
@@ -70,7 +71,7 @@ export default function TentangKamiSection() {
               className="relative w-full text-left block rounded-2xl overflow-hidden shadow-2xl border border-white/10 group cursor-pointer aspect-video"
             >
               <Image
-                src="/images/ATV-KALIURANG-3.jpeg"
+                src={SITE_ASSETS.tentangKami.videoThumbnail}
                 alt="Video ATV Kaliurang"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
@@ -118,7 +119,7 @@ export default function TentangKamiSection() {
             </button>
             <iframe
               className="w-full h-full"
-              src="https://www.youtube.com/embed/JZ4l4VcAPq4?autoplay=1"
+              src={toYoutubeEmbedUrl(SITE_ASSETS.tentangKami.videoUrl)}
               title="Video ATV Kaliurang"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen

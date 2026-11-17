@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { WA_ORDER_LINK } from "@/lib/constants";
+import { SITE_ASSETS, WA_ORDER_LINK } from "@/lib/constants";
 
 export default function ProfilSection() {
   return (
@@ -16,7 +16,7 @@ export default function ProfilSection() {
             {/* Main photo */}
             <div className="relative z-10 rounded-2xl overflow-hidden shadow-xl ml-4 sm:ml-6 mt-4 sm:mt-6 h-[280px] sm:h-[420px] md:h-[480px]">
               <Image
-                src="/images/atv-kaliurang-merapi-10.jpeg"
+                src={SITE_ASSETS.profilImage}
                 alt="ATV Merapi Kaliurang - Jelajahi Hutan dan Sungai"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"

@@ -3,32 +3,10 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Image from "next/image";
 import { TiktokIcon, InstagramIcon } from "./SocialIcons";
-import { WA_ORDER_LINK } from "@/lib/constants";
+import { CONTACT, SITE_ASSETS, WA_ORDER_LINK } from "@/lib/constants";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
-const heroSlides = [
-  {
-    image: "/images/ATV-KALIURANG-1.jpeg",
-    subtitle: "Selamat Datang Di OJE",
-    title: "ATV KALIURANG",
-    description:
-      "Jelajahi Hutan, Sungai menggunakan ATV Kaliurang bersama keluarga, teman, atau orang terkasih Anda.",
-  },
-  {
-    image: "/images/ATV-KALIURANG-2.jpeg",
-    subtitle: "Petualangan Seru & Menantang",
-    title: "TREK HUTAN & AIR",
-    description:
-      "Sensasi memacu adrenalin melintasi sungai berbatu dan jalur offroad alami lereng Gunung Merapi.",
-  },
-  {
-    image: "/images/ATV-KALIURANG-5.jpeg",
-    subtitle: "Pengalaman Tak Terlupakan",
-    title: "WISATA MERAPI",
-    description:
-      "Abadikan momen petualangan terhebat Anda dengan fasilitas lengkap, aman, dan pemandu berpengalaman.",
-  },
-];
+const heroSlides = SITE_ASSETS.heroSlides;
 
 export default function HeroSection() {
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -140,7 +118,7 @@ export default function HeroSection() {
       {/* Left Frosted Glass Floating Social Icons (Desktop left column, safe-positioned Flexbox row below CTA on mobile) */}
       <div className="hidden sm:flex absolute left-8 top-1/2 -translate-y-1/2 z-30 flex-col gap-4">
         <a
-          href="https://www.tiktok.com/@oje_atvkaliurang"
+          href={CONTACT.TIKTOK_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="TikTok OJE ATV Kaliurang"
@@ -150,7 +128,7 @@ export default function HeroSection() {
         </a>
 
         <a
-          href="https://www.instagram.com/oje_atvkaliurang/"
+          href={CONTACT.INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
           aria-label="Instagram OJE ATV Kaliurang"
@@ -240,7 +218,7 @@ export default function HeroSection() {
         {/* Mobile Social Icons (Android & iOS — clean Flexbox row, zero overlap) */}
         <div className="flex sm:hidden items-center justify-center gap-3 mt-5">
           <a
-            href="https://www.tiktok.com/@oje_atvkaliurang"
+            href={CONTACT.TIKTOK_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="TikTok OJE ATV Kaliurang"
@@ -249,7 +227,7 @@ export default function HeroSection() {
             <TiktokIcon className="w-4 h-4 text-white" />
           </a>
           <a
-            href="https://www.instagram.com/oje_atvkaliurang/"
+            href={CONTACT.INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
             aria-label="Instagram OJE ATV Kaliurang"

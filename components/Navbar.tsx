@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import Image from "next/image";
 import { Menu, X, Phone } from "lucide-react";
-import { CONTACT, WA_ORDER_LINK } from "@/lib/constants";
+import { CONTACT, SITE_ASSETS, WA_ORDER_LINK } from "@/lib/constants";
 
 const navLinks = [
   { label: "Home", href: "#hero" },
@@ -85,7 +85,7 @@ export default function Navbar() {
           className="flex items-center gap-2 sm:gap-3 shrink-0 text-left focus:outline-none"
         >
           <Image
-            src="/images/logos.png"
+            src={SITE_ASSETS.logo}
             alt="OJE ATV Kaliurang"
             width={160}
             height={56}

@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# O.J.E – ATV Kaliurang Merapi
 
-## Getting Started
+Website profil dan sistem pemesanan online untuk **O.J.E – ATV Kaliurang Merapi | Petualangan Wisata ATV Jogja**, dibangun menggunakan **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS v4 (Pure Flexbox)**, **Supabase**, **Resend**, dan **Google Sheets Webhook**.
 
-First, run the development server:
+---
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+## 🌐 Live Demo & Pemesanan Riil
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+- **Website Utama (Live Production)**: [O.J.E – Atv Kaliurang Merapi | Petualangan Wisata ATV Jogja](https://oje-atv-kaliurang-clone-f2m1.vercel.app/)
+- **Langsung ke Form Booking Riil**: [Form Pemesanan ATV Kaliurang (`#booking`)](https://oje-atv-kaliurang-clone-f2m1.vercel.app/#booking)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+---
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## ✨ Fitur Utama
 
-## Learn More
+1. **Sistem Booking End-to-End & Cek Slot Real-Time**:
+   - Pengecekan sisa kuota unit harian otomatis (`GET /api/availability?tanggal=YYYY-MM-DD`, maksimal 15 unit/hari).
+   - Pembuatan **Kode Booking CSPRNG** (`OJE-MMDD-XXXXX`) beserta tiket ringkasan (resi) yang dapat disalin dan dikirim langsung ke WhatsApp Admin.
+   - Penyimpanan data terstruktur ke **Supabase PostgreSQL** (dilengkapi post-insert guard anti-*race condition* kuota harian).
+   - Sinkronisasi otomatis non-blocking ke **Google Sheets** (via Apps Script Webhook dengan proteksi *Formula Injection*) dan notifikasi email admin via **Resend**.
+2. **Keamanan Berlapis**:
+   - Validasi skema server-side ketat menggunakan **Zod** (`lib/validations.ts`).
+   - Proteksi anti-bot **Honeypot** + dukungan opsional **Cloudflare Turnstile** (`lib/turnstile.ts`).
+   - **IP & Global Rate Limiting** (`lib/ratelimit.ts`) yang dieksekusi setelah validasi agar kesalahan ketik pengguna tidak mengunci kuota IP.
+   - Security Headers lengkap (`Content-Security-Policy`, `HSTS`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`) di `next.config.ts`.
+3. **Desain Responsif Pure Flexbox (Desktop, Android, & iOS)**:
+   - Tata letak 100% berbasis Flexbox, bebas *horizontal overflow* maupun *scroll lock* di perangkat mobile.
+   - Optimasi gambar menggunakan `next/image` dan variable font `Manrope` & `Montserrat` melalui `next/font/google`.
+4. **Konfigurasi Aset Terpusat (`SITE_ASSETS`)**:
+   - Seluruh gambar, logo, slide hero, galeri, testimoni, link video YouTube, dan Google Maps terpusat di satu file [`lib/constants.ts`](./lib/constants.ts) untuk memudahkan penggantian aset client.
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🖼️ Cara Mengganti Gambar, Galeri, & Video Client
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. Simpan file gambar baru ke dalam folder `public/images/`.
+2. Buka [`lib/constants.ts`](./lib/constants.ts) dan sesuaikan path pada objek `SITE_ASSETS` (logo, `heroSlides`, `profilImage`, `kenapaKamiCards`, `pricing`, `tentangKami`, `testimonials`, `galleryImages`, `location`).
+3. Untuk video di bagian **Tentang Kami**, cukup tempelkan link YouTube biasa (`https://www.youtube.com/watch?v=...` atau `https://youtu.be/...`) pada `SITE_ASSETS.tentangKami.videoUrl`.
 
-## Deploy on Vercel
+---
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## 🚀 Menjalankan di Lokal
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+1. **Install dependencies**:
+   ```bash
+   npm install
+   ```
+2. **Salin konfigurasi environment**:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+   Isi variabel di `.env.local` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GOOGLE_SHEETS_WEBHOOK_URL`, `GOOGLE_SHEETS_SECRET`, dll.).
+3. **Siapkan tabel database Supabase**:
+   Jalankan query di [`supabase-schema.sql`](./supabase-schema.sql) pada **Supabase SQL Editor**.
+4. **Jalankan development server**:
+   ```bash
+   npm run dev
+   ```
+   Buka `http://localhost:3000` di browser.
+
+---
+
+## 🛠️ Perintah Utilitas
+
+- `npm run dev` — Menjalankan server development lokal.
+- `npm run build` — Membuat production build Next.js.
+- `npm run lint` — Menjalankan pemeriksaan kode ESLint.
+- `npm run export` — Mengekspor data booking dari Supabase ke file CSV/Excel (`REPORT_BOOKING_OJE_ATV.csv`).

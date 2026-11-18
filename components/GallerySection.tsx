@@ -76,7 +76,7 @@ export default function GallerySection() {
       {/* Red Gallery Header Bar */}
       <div className="bg-[#b51b41] py-5 text-center shadow-inner">
         <h2 className="text-white font-black text-2xl sm:text-3xl tracking-widest uppercase">
-          GALLERY ATV
+          GALERI LAVA TOUR MERAPI
         </h2>
       </div>
 
@@ -98,11 +98,17 @@ export default function GallerySection() {
                 sizes="(max-width: 640px) 50vw, (max-width: 768px) 33vw, 25vw"
                 className="object-cover transition-transform duration-500 group-hover:scale-110"
               />
+              {/* Bottom destination caption bar */}
+              <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/85 via-black/45 to-transparent px-3 py-2.5 pointer-events-none">
+                <p className="text-white text-xs sm:text-sm font-extrabold tracking-wide drop-shadow">
+                  {img.alt}
+                </p>
+              </div>
               {/* Hover overlay with zoom icon */}
-              <div className="absolute inset-0 bg-[#b51b41]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white">
+              <div className="absolute inset-0 bg-[#b51b41]/60 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex flex-col items-center justify-center text-white px-2 text-center">
                 <ZoomIn className="w-10 h-10 mb-2 transform group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-bold uppercase tracking-wider">
-                  Lihat Foto
+                  {img.alt}
                 </span>
               </div>
             </div>

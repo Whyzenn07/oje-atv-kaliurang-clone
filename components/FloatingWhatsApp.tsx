@@ -6,10 +6,10 @@ import { WhatsAppIcon } from "@/components/SocialIcons";
 export default function FloatingWhatsApp() {
   return (
     <a
-      href={`https://wa.me/${CONTACT.WA_NUMBER}?text=${encodeURIComponent("Halo OJE ATV Kaliurang, saya ingin tanya paket tour.")}`}
+      href={`https://wa.me/${CONTACT.WA_NUMBER}?text=${encodeURIComponent("Hallo kak, saya ingin tanya paket Jeep Lava Tour Merapi.")}`}
       target="_blank"
       rel="noopener noreferrer"
-      aria-label="Chat WhatsApp OJE ATV Kaliurang"
+      aria-label="Chat WhatsApp Wisata Merapi"
       // wa-float-btn: class khusus agar naik di atas sticky bar di mobile (via CSS)
       className="wa-float-btn fixed bottom-5 right-4 sm:bottom-6 sm:right-6 z-50 group flex items-center gap-3"
     >

@@ -3,10 +3,10 @@ import { SITE_ASSETS } from "@/lib/constants";
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: "O.J.E – ATV Kaliurang Merapi",
-    short_name: "OJE ATV Kaliurang",
+    name: "Wisata Merapi – Lava Tour Jeep Merapi",
+    short_name: "Wisata Merapi",
     description:
-      "Tour & Petualangan ATV Kaliurang Merapi Yogyakarta. Sensasi jelajah hutan dan sungai.",
+      "Wisata Edukasi & Adventure Lava Tour Jeep Merapi Yogyakarta.",
     start_url: "/",
     display: "standalone",
     background_color: "#1c1c1c",

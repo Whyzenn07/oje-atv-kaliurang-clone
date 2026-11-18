@@ -5,9 +5,9 @@ import { MapPin, Clock, Navigation, Phone } from "lucide-react";
 import { CONTACT, SITE_ASSETS } from "@/lib/constants";
 
 const operatingHours = [
-  { day: "Senin – Jumat", hours: "08:00 – 17:00 WIB" },
-  { day: "Sabtu – Minggu", hours: "07:00 – 17:00 WIB" },
-  { day: "Hari Libur Nasional", hours: "07:00 – 17:00 WIB" },
+  { day: "Paket Sunrise", hours: "04:30 – 07:30 WIB" },
+  { day: "Paket Reguler (Setiap Hari)", hours: "06:00 – 16:30 WIB" },
+  { day: "Layanan Reservasi Online", hours: "24 Jam Setiap Hari" },
 ];
 
 export default function LocationSection() {
@@ -18,7 +18,7 @@ export default function LocationSection() {
         <div className="absolute inset-0">
           <Image
             src={SITE_ASSETS.location.bannerImage}
-            alt="Lokasi ATV Kaliurang"
+            alt="Lokasi Basecamp Wisata Lava Tour Merapi"
             fill
             sizes="100vw"
             className="object-cover object-center"
@@ -27,10 +27,10 @@ export default function LocationSection() {
         </div>
         <div className="relative z-10 px-4">
           <p className="text-amber-400 font-extrabold text-xs sm:text-sm tracking-[0.3em] uppercase mb-2 drop-shadow">
-            LOKASI KAMI
+            BASECAMP &amp; PENJEMPUTAN
           </p>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight">
-            CARA MENUJU LOKASI
+            LOKASI &amp; TITIK KUMPUL
           </h2>
           <div className="w-16 h-1 bg-[#b51b41] mx-auto mt-4 rounded" />
         </div>
@@ -48,10 +48,11 @@ export default function LocationSection() {
                   <MapPin className="w-6 h-6 text-white" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-lg text-white mb-1">Alamat</h3>
+                  <h3 className="font-bold text-lg text-white mb-1">Basecamp &amp; Area Jemput</h3>
                   <p className="text-gray-300 text-sm leading-relaxed">
-                    Kaliurang Timur, RT.05/RW15, Kaliurang, Hargobinangun,
-                    Kec. Pakem, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55582
+                    Kawasan Wisata Kaliurang, Hargobinangun, Kec. Pakem, Kabupaten
+                    Sleman, Daerah Istimewa Yogyakarta (Gratis jemput pakai Jeep
+                    untuk penginapan di area Kaliurang terjangkau).
                   </p>
                 </div>
               </div>

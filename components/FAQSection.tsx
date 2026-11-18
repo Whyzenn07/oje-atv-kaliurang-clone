@@ -5,44 +5,29 @@ import { ChevronDown, HelpCircle } from "lucide-react";
 
 const faqs = [
   {
-    question: "Berapa usia minimum untuk naik ATV?",
+    question: "Ini nanti dijemput atau ada titik kumpulnya ya min?",
     answer:
-      "Untuk ATV single, usia minimum 12 tahun. Anak di bawah 12 tahun bisa ikut dengan moda boncengan (ATV Tandem) didampingi orang dewasa atau pemandu. Keselamatan adalah prioritas utama kami.",
+      "Kalau menginap di area Kaliurang (terjangkau) bisa langsung jemput pakai Jeep tanpa biaya tambahan. Jika di luar area tersebut, nanti bisa menggunakan jasa antar-jemput atau bertemu langsung di basecamp kami.",
   },
   {
-    question: "Berapa lama durasi tour ATV?",
+    question: "Apakah harga sudah termasuk dokumentasi?",
     answer:
-      "Durasi tour ATV sekitar ±2 jam, termasuk briefing keselamatan, persiapan perlengkapan, dan sesi foto. Waktu di trek kurang lebih 1,5 jam menjelajahi hutan, sungai, dan jalur offroad.",
+      "Belum termasuk paket fotografer profesional, tapi jika sekadar dokumentasi foto & video menggunakan HP pribadi nanti bisa dibantu langsung oleh driver kami di setiap spot wisata. Jika ingin dokumentasi foto kamera & drone, silakan tulis di kolom Tambahan saat mengisi Form Booking.",
   },
   {
-    question: "Apa saja yang perlu dibawa?",
+    question: "Apakah anak satu tahun boleh ikut min?",
     answer:
-      "Anda cukup membawa pakaian ganti dan semangat petualangan! Semua perlengkapan seperti helm, sepatu boot, dan pelindung HP anti-air sudah kami sediakan. Disarankan memakai pakaian yang nyaman dan tidak takut kotor.",
+      "Boleh dong! Kapasitas 1 unit Jeep maksimal untuk 4 penumpang dewasa (+1 balita masih bisa ikut dengan nyaman didampingi orang tua).",
   },
   {
-    question: "Apakah tour tetap jalan saat hujan?",
+    question: "Apakah di basecamp tersedia toilet & tempat ibadah?",
     answer:
-      "Ya! Tour ATV tetap berjalan saat hujan — bahkan lebih seru karena trek menjadi lebih menantang. Kami menyediakan jas hujan jika diperlukan. Tour hanya dibatalkan jika kondisi cuaca ekstrem yang membahayakan.",
+      "Ya, tersedia lengkap. Di basecamp kami tersedia area parkir luas, toilet bersih, kamar bilas, dan mushola/tempat ibadah.",
   },
   {
-    question: "Bagaimana sistem pembayaran?",
+    question: "Free jas hujan ngga min?",
     answer:
-      "Pembayaran bisa dilakukan di lokasi secara tunai atau transfer. Untuk booking, cukup hubungi kami via WhatsApp untuk konfirmasi jadwal — tidak perlu DP. Namun pada musim liburan, kami rekomendasikan booking H-1 untuk memastikan slot tersedia.",
-  },
-  {
-    question: "Apakah ada pemandu selama perjalanan?",
-    answer:
-      "Tentu! Setiap grup akan didampingi pemandu profesional yang terlatih dan berpengalaman. Pemandu kami juga menjadi fotografer/videografer untuk mendokumentasikan momen petualangan Anda.",
-  },
-  {
-    question: "Apakah harus punya pengalaman naik ATV?",
-    answer:
-      "Tidak perlu! Sebelum berangkat, pemandu kami akan memberikan briefing lengkap tentang cara mengemudi ATV, rem, gas, dan teknik di medan offroad. ATV kami otomatis (matic) sehingga mudah dikendarai pemula.",
-  },
-  {
-    question: "Di mana lokasi meeting point?",
-    answer:
-      "Meeting point di Kaliurang Timur, RT.05/RW15, Kaliurang, Hargobinangun, Kec. Pakem, Kabupaten Sleman, Daerah Istimewa Yogyakarta 55582. Anda bisa klik link Google Maps di bagian Lokasi untuk navigasi langsung.",
+      "Untuk jas hujan beli sendiri yaa, nanti di sekitar lokasi basecamp banyak yang menjual dengan harga terjangkau apabila turun hujan atau ingin basah-basahan di Kali Kuning.",
   },
 ];
 
@@ -67,10 +52,10 @@ export default function FAQSection() {
             PERTANYAAN UMUM
           </div>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-black text-gray-900 uppercase tracking-tight">
-            FAQ
+            Pertanyaan Yang Sering Diajukan
           </h2>
           <p className="text-gray-500 text-sm sm:text-base mt-3 max-w-lg mx-auto">
-            Pertanyaan yang sering diajukan seputar tour ATV Kaliurang Merapi
+            Informasi seputar layanan Wisata Lava Tour Jeep Merapi
           </p>
           <div className="w-16 h-1 bg-[#b51b41] mx-auto mt-4 rounded" />
         </div>

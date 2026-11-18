@@ -32,7 +32,7 @@ export default function TentangKamiSection() {
           {/* Left column: Text */}
           <div className="w-full lg:flex-1 min-w-0">
             <p className="text-amber-400 font-extrabold text-xs sm:text-sm tracking-[0.35em] uppercase mb-3">
-              www.ojeatvkaliurang.com
+              www.wisatamerapi.id
             </p>
             <h2 className="text-3xl sm:text-4xl md:text-5xl font-black text-white uppercase tracking-tight mb-5 leading-tight">
               Tentang Kami
@@ -40,23 +40,23 @@ export default function TentangKamiSection() {
             <div className="w-16 h-1 bg-[#b51b41] rounded mb-6" />
 
             <p className="text-gray-300 text-base sm:text-lg leading-relaxed text-justify mb-8">
-              ATV Kaliurang adalah tempat yang menyenangkan untuk menjelajahi
-              hutan, sungai di Kaliurang Yogyakarta. Tur petualangan ekstrem
-              kami dirancang untuk orang dewasa dan anak-anak dari segala usia,
-              yang menyukai sensasi menjelajahi tempat-tempat baru bersama-sama.
+              Wisata Lava Tour Merapi menghadirkan pengalaman tak terlupakan
+              menjelajahi lereng Gunung Merapi Yogyakarta menggunakan Jeep 4x4.
+              Cocok untuk keluarga, pasangan, maupun rombongan kantor dengan
+              layanan jemput di area Kaliurang serta jaminan asuransi resmi.
             </p>
 
             <div className="flex flex-wrap gap-6 pt-4 border-t border-white/10">
               <div className="flex-1 min-w-[140px]">
-                <p className="text-2xl sm:text-3xl font-black text-amber-400">100%</p>
+                <p className="text-2xl sm:text-3xl font-black text-amber-400">Maks. 4 Org</p>
                 <p className="text-xs text-gray-400 font-semibold uppercase mt-1">
-                  Pemandu Profesional
+                  Kapasitas per 1 Unit Jeep (+1 Balita)
                 </p>
               </div>
               <div className="flex-1 min-w-[140px]">
-                <p className="text-2xl sm:text-3xl font-black text-[#b51b41]">Safety First</p>
+                <p className="text-2xl sm:text-3xl font-black text-[#b51b41]">All-In</p>
                 <p className="text-xs text-gray-400 font-semibold uppercase mt-1">
-                  Peralatan Standar Lengkap
+                  Tiket Destinasi, Driver &amp; Asuransi
                 </p>
               </div>
             </div>

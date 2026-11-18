@@ -141,8 +141,8 @@ export async function sendBookingNotification(
 <body>
   <div class="container">
     <div class="header">
-      <h1>&#x1F3CD;&#xFE0F; Booking Baru Masuk!</h1>
-      <p>OJE ATV Kaliurang — Sistem Booking Otomatis</p>
+      <h1>&#x1F699; Booking Jeep Merapi Baru!</h1>
+      <p>Wisata Lava Tour Merapi — Sistem Booking Otomatis</p>
       <span class="badge">&#x1F4CB; ID: ${booking.id.substring(0, 8).toUpperCase()}</span>
     </div>
     <div class="body">
@@ -153,26 +153,30 @@ export async function sendBookingNotification(
       <div class="field">
         <div class="label">&#x1F4F1; WhatsApp Customer</div>
         <div class="value">
-          <a href="https://wa.me/${esc(normalizedWa)}?text=${encodeURIComponent('Halo Kak ' + booking.nama + ', kami dari OJE ATV Kaliurang terkait booking #' + booking.id.substring(0, 8).toUpperCase())}" style="color: #25D366; text-decoration: none; font-weight: bold;">
+          <a href="https://wa.me/${esc(normalizedWa)}?text=${encodeURIComponent('Halo Kak ' + booking.nama + ', kami dari Wisata Lava Tour Merapi terkait booking #' + booking.id.substring(0, 8).toUpperCase())}" style="color: #25D366; text-decoration: none; font-weight: bold;">
             +${esc(normalizedWa)} (Klik untuk Chat WA) &rarr;
           </a>
         </div>
       </div>
       <div class="field">
-        <div class="label">&#x1F3AF; Paket Dipilih</div>
+        <div class="label">&#x1F3D9;&#xFE0F; Kota Asal</div>
+        <div class="value">${esc(booking.kotaAsal)}</div>
+      </div>
+      <div class="field">
+        <div class="label">&#x1F3AF; Paket Jeep Dipilih</div>
         <div class="value">${esc(booking.paket)}</div>
       </div>
       <div class="field">
-        <div class="label">&#x1F4C5; Tanggal Sewa</div>
-        <div class="value">${tanggalFormatted}</div>
+        <div class="label">&#x1F4C5; Tanggal &amp; Jam</div>
+        <div class="value">${tanggalFormatted} — ${esc(booking.jam)}</div>
       </div>
       <div class="field">
-        <div class="label">&#x1F522; Jumlah Unit</div>
-        <div class="value">${booking.jumlah} unit</div>
+        <div class="label">&#x1F699; Jumlah Jeep &amp; Peserta</div>
+        <div class="value">${booking.jumlah} Unit Jeep (${booking.jumlahPeserta} Peserta)</div>
       </div>
       ${booking.catatan ? `
       <div class="field">
-        <div class="label">&#x1F4DD; Catatan / Request</div>
+        <div class="label">&#x1F4DD; Tambahan / Catatan</div>
         <div class="value" style="white-space:pre-wrap">${esc(booking.catatan)}</div>
       </div>
       ` : ""}

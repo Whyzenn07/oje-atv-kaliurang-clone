@@ -141,8 +141,8 @@ export async function POST(request: NextRequest) {
           {
             success: false,
             error: remaining > 0
-              ? `Slot ATV untuk tanggal tersebut tersisa ${remaining} unit. Silakan kurangi unit atau pilih tanggal lain.`
-              : "Mohon maaf, kuota unit ATV untuk tanggal tersebut sudah penuh. Silakan pilih tanggal lain.",
+              ? `Slot Jeep untuk tanggal tersebut tersisa ${remaining} unit. Silakan kurangi jumlah Jeep atau pilih tanggal lain.`
+              : "Mohon maaf, kuota unit Jeep untuk tanggal tersebut sudah penuh. Silakan pilih tanggal lain.",
           },
           { status: 409 }
         );
@@ -156,15 +156,21 @@ export async function POST(request: NextRequest) {
   let bookingId: string;
   let createdAt: string;
 
-  // Buat kode booking rapi, contoh: OJE-1120-A7K9M
+  // Buat kode booking rapi, contoh: WM-1120-A7K9M
   const cleanDate = data.tanggal.replace(/-/g, "").slice(4); // MMDD
   const randChars = Array.from(randomBytes(5), (b) => "ABCDEFGHJKLMNPQRSTUVWXYZ23456789"[b % 32]).join("");
-  const humanBookingCode = `OJE-${cleanDate}-${randChars}`;
+  const humanBookingCode = `WM-${cleanDate}-${randChars}`;
   const estimasiTotal = getPackageUnitPrice(data.paket) * data.jumlah;
+
+  const extraMeta = `[JAM: ${data.jam}] [PESERTA: ${data.jumlahPeserta} org] [KOTA: ${data.kotaAsal}]`;
+  const structuredCatatan = [extraMeta, data.catatan ? data.catatan : null]
+    .filter(Boolean)
+    .join(" - ");
 
   // Fallback format catatan apabila skema Supabase belum di-migrate ke kolom terpisah
   const combinedCatatan = [
     `[WA: ${data.whatsapp}] [KODE: ${humanBookingCode}]`,
+    extraMeta,
     data.catatan ? data.catatan : null,
   ]
     .filter(Boolean)
@@ -181,7 +187,7 @@ export async function POST(request: NextRequest) {
         tanggal: data.tanggal,
         jumlah: data.jumlah,
         estimasi_total: estimasiTotal,
-        catatan: data.catatan || null,
+        catatan: structuredCatatan,
         status: "PENDING",
         ip_address: ip,
       })

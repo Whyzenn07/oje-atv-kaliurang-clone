@@ -49,8 +49,9 @@ export default function FooterSection() {
             </a>
 
             <p className="text-gray-300 text-sm leading-relaxed mb-6 max-w-sm">
-              Jelajahi Hutan, Sungai mengunakan ATV Kaliurang bersama keluarga,
-              teman, atau orang terkasih Anda.
+              Layanan wisata edukasi dan adventure berkeliling kawasan Gunung
+              Merapi bekas aliran lahar dingin erupsi 2010 menggunakan mobil
+              Jeep 4x4.
             </p>
 
             {/* Social icons */}
@@ -172,12 +173,12 @@ export default function FooterSection() {
           <p className="text-gray-400 text-xs sm:text-sm">
             Copyright &copy; {new Date().getFullYear()}{" "}
             <a
-              href="https://ojeatvkaliurang.com/"
+              href="https://wisatamerapi.id/"
               className="text-[#e3851b] font-bold hover:underline"
             >
-              Oje ATV Kaliurang
+              Wisata Merapi
             </a>{" "}
-            All rights reserved By Gweb Engine
+            All rights reserved
           </p>
         </div>
       </div>

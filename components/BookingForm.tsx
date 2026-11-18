@@ -4,6 +4,8 @@ import { useState, useEffect, useRef, useSyncExternalStore } from "react";
 import { Check, Copy } from "lucide-react";
 import {
   CONTACT,
+  DEPARTURE_TIMES,
+  MAX_PASSENGERS_PER_JEEP,
   MAX_UNITS_PER_DAY,
   PACKAGE_OPTIONS,
   getPackageUnitPrice,
@@ -15,17 +17,20 @@ const SPAM_COOLDOWN_SEC = 8; // detik jeda setelah submit
 const TURNSTILE_SITE_KEY = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY?.trim() || "";
 
 const notePresets = [
-  "Request dokumentasi fotografer & editor",
-  "Rombongan vacation perusahaan",
-  "Pemula, butuh briefing santai",
+  "Request dokumentasi foto & drone",
+  "Minta jemput di penginapan area Kaliurang",
+  "Bertemu langsung di Basecamp",
 ];
 
 type BookingReceipt = {
   code: string;
   nama: string;
   whatsapp: string;
+  kotaAsal: string;
   paket: string;
   tanggal: string;
+  jam: string;
+  jumlahPeserta: number;
   jumlah: number;
   estimasi: string;
   catatan: string;
@@ -71,8 +76,11 @@ export default function BookingForm() {
   const [form, setForm] = useState({
     nama: "",
     whatsapp: "",
+    kotaAsal: "",
     paket: "",
     tanggal: "",
+    jam: "08:00 WIB",
+    jumlahPeserta: "4",
     jumlah: "1",
     catatan: "",
   });
@@ -104,7 +112,7 @@ export default function BookingForm() {
 
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
-  // Parse unit count safely
+  // Parse unit Jeep & peserta count safely
   const parsedJumlahRaw = Number(form.jumlah);
   const isJumlahValidInt =
     form.jumlah.trim() !== "" &&
@@ -112,10 +120,20 @@ export default function BookingForm() {
     parsedJumlahRaw >= 1 &&
     parsedJumlahRaw <= MAX_UNITS_PER_DAY;
   const qty = Math.min(Math.max(parseInt(form.jumlah, 10) || 1, 1), MAX_UNITS_PER_DAY);
+
+  const parsedPesertaRaw = Number(form.jumlahPeserta);
+  const isPesertaValidInt =
+    form.jumlahPeserta.trim() !== "" &&
+    Number.isInteger(parsedPesertaRaw) &&
+    parsedPesertaRaw >= 1 &&
+    parsedPesertaRaw <= 60;
+  const pesertaQty = Math.min(Math.max(parseInt(form.jumlahPeserta, 10) || 1, 1), 60);
+  const minRequiredJeeps = Math.ceil(pesertaQty / MAX_PASSENGERS_PER_JEEP);
+
   const remainingSlots =
     availability && availability.tanggal === form.tanggal ? availability.remaining : null;
 
-  // Inline validation
+  // Inline validation for all 9 fields
   const errors: Record<string, string> = {};
   if (touched.nama && !form.nama.trim()) errors.nama = "Nama wajib diisi";
   else if (touched.nama && form.nama.trim().length < 2) errors.nama = "Nama minimal 2 karakter";
@@ -130,25 +148,34 @@ export default function BookingForm() {
   else if (touched.whatsapp && form.whatsapp.replace(/[^0-9]/g, "").length > 15)
     errors.whatsapp = "Nomor WhatsApp maksimal 15 digit";
 
-  if (touched.paket && !form.paket) errors.paket = "Pilih paket terlebih dahulu";
+  if (touched.kotaAsal && !form.kotaAsal.trim()) errors.kotaAsal = "Kota asal wajib diisi";
+  else if (touched.kotaAsal && form.kotaAsal.trim().length < 2)
+    errors.kotaAsal = "Kota asal minimal 2 karakter";
 
-  if (touched.tanggal && !form.tanggal) errors.tanggal = "Pilih tanggal sewa";
+  if (touched.paket && !form.paket) errors.paket = "Pilih paket Jeep terlebih dahulu";
+
+  if (touched.tanggal && !form.tanggal) errors.tanggal = "Pilih tanggal tour";
   else if (touched.tanggal && minDate && form.tanggal < minDate)
     errors.tanggal = "Tanggal tidak boleh di masa lalu";
 
+  if (touched.jam && !form.jam.trim()) errors.jam = "Pilih jam keberangkatan";
+
+  if (!isPesertaValidInt) {
+    errors.jumlahPeserta = "Jumlah peserta harus antara 1 sampai 60 orang";
+  }
+
   if (!isJumlahValidInt) {
-    errors.jumlah = `Jumlah harus antara 1 sampai ${MAX_UNITS_PER_DAY} unit`;
+    errors.jumlah = `Jumlah Jeep harus antara 1 sampai ${MAX_UNITS_PER_DAY} unit`;
   } else if (remainingSlots === 0) {
-    errors.jumlah = "Kuota tanggal ini sudah penuh (0 unit tersisa)";
+    errors.jumlah = "Kuota Jeep tanggal ini sudah penuh (0 unit tersisa)";
   } else if (remainingSlots !== null && qty > remainingSlots) {
-    errors.jumlah = `Sisa slot tanggal ini hanya ${remainingSlots} unit`;
+    errors.jumlah = `Sisa slot Jeep tanggal ini hanya ${remainingSlots} unit`;
   }
 
   const handleBlur = (field: string) => {
     setTouched((prev) => ({ ...prev, [field]: true }));
   };
 
-  // Bersihkan interval cooldown saat komponen unmount
   useEffect(() => {
     return () => {
       if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -163,7 +190,11 @@ export default function BookingForm() {
         typeof pkg === "string" &&
         (PACKAGE_OPTIONS as readonly string[]).includes(pkg)
       ) {
-        setForm((prev) => ({ ...prev, paket: pkg }));
+        setForm((prev) => ({
+          ...prev,
+          paket: pkg,
+          jam: pkg.includes("Sunrise") ? "04:30 WIB (Khusus Sunrise)" : prev.jam,
+        }));
         setTouched((prev) => ({ ...prev, paket: false }));
       }
     };
@@ -278,27 +309,37 @@ export default function BookingForm() {
         setLoadingTanggal(null);
       }
     }
-    setForm({ ...form, [name]: value });
+    if (name === "paket" && value.includes("Sunrise")) {
+      setForm((prev) => ({ ...prev, paket: value, jam: "04:30 WIB (Khusus Sunrise)" }));
+      return;
+    }
+    setForm((prev) => ({ ...prev, [name]: value }));
   };
 
-  const formatWAMessage = (bookingCode?: string) => {
+  const formatWAMessage = (bookingCode?: string, totalEstimasi?: string) => {
     const safeName = sanitize(form.nama, 100);
     const safeWA = sanitize(form.whatsapp, 20);
+    const safeKota = sanitize(form.kotaAsal, 80);
     const safePaket = sanitize(form.paket, 100);
+    const safeJam = sanitize(form.jam, 40);
     const safeCatatan = sanitize(form.catatan, 300);
 
     const lines = [
-      "🏍️ *BOOKING OJE ATV KALIURANG*",
+      "🚙 *FORM BOOKING JEEP LAVA TOUR MERAPI*",
       "---------------------------------",
-      bookingCode ? `🆔 *ID Booking*: ${bookingCode}` : null,
+      bookingCode ? `🆔 *Kode Booking*: ${bookingCode}` : null,
       `👤 *Nama*: ${safeName}`,
-      `📱 *No. WhatsApp*: ${safeWA}`,
-      `🎯 *Paket*: ${safePaket}`,
-      `📅 *Tanggal Sewa*: ${form.tanggal}`,
-      `🔢 *Jumlah Unit*: ${qty} unit`,
-      safeCatatan ? `📝 *Catatan*: ${safeCatatan}` : null,
+      `📅 *Tanggal*: ${form.tanggal}`,
+      `⏰ *Jam*: ${safeJam}`,
+      `🎯 *Paket Jeep*: ${safePaket}`,
+      `🚙 *Jumlah Jeep*: ${qty} Jeep`,
+      `👥 *Jumlah Peserta*: ${pesertaQty} orang`,
+      `📱 *Nomor WhatsApp*: ${safeWA}`,
+      `🏙️ *Kota Asal*: ${safeKota}`,
+      totalEstimasi ? `💰 *Estimasi Total*: ${totalEstimasi}` : null,
+      safeCatatan ? `📝 *Tambahan*: ${safeCatatan}` : null,
       "---------------------------------",
-      "Halo Admin, saya sudah mengisi form booking di website. Mohon informasi ketersediaan jadwal & detail meeting point. Terima kasih! 🙏",
+      "Hallo kak, saya sudah mengisi Form Booking di website Wisata Merapi. Mohon konfirmasi ketersediaan jadwal & info meeting point/penjemputan. Terima kasih! 🙏",
     ]
       .filter(Boolean)
       .join("\n");
@@ -320,7 +361,7 @@ export default function BookingForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!form.nama || !form.whatsapp || !form.paket || !form.tanggal) return;
+    if (!form.nama || !form.whatsapp || !form.kotaAsal || !form.paket || !form.tanggal || !form.jam) return;
     if (cooldown > 0 || remainingSlots === 0) return;
     if (TURNSTILE_SITE_KEY && !turnstileToken) {
       setApiError("Harap selesaikan verifikasi keamanan terlebih dahulu.");
@@ -334,6 +375,8 @@ export default function BookingForm() {
 
     const safeName = sanitize(form.nama, 100);
     const safeWA = sanitize(form.whatsapp, 20);
+    const safeKota = sanitize(form.kotaAsal, 80);
+    const safeJam = sanitize(form.jam, 40);
     const safeCatatan = form.catatan ? sanitize(form.catatan, 300) : "";
     const selectedPrice = getPackageUnitPrice(form.paket);
     const totalEstimasi = selectedPrice
@@ -347,8 +390,11 @@ export default function BookingForm() {
         body: JSON.stringify({
           nama: safeName,
           whatsapp: safeWA,
+          kotaAsal: safeKota,
           paket: form.paket,
           tanggal: form.tanggal,
+          jam: safeJam,
+          jumlahPeserta: pesertaQty,
           jumlah: qty,
           catatan: safeCatatan || null,
           website: websiteHoneypot,
@@ -370,7 +416,7 @@ export default function BookingForm() {
         : result.bookingId
         ? `#${result.bookingId.substring(0, 8).toUpperCase()}`
         : "#TERCATAT";
-      const text = encodeURIComponent(formatWAMessage(bookingCode));
+      const text = encodeURIComponent(formatWAMessage(bookingCode, totalEstimasi));
       const waUrl = `https://wa.me/${CONTACT.WA_NUMBER}?text=${text}`;
 
       setLastWaUrl(waUrl);
@@ -378,14 +424,16 @@ export default function BookingForm() {
         code: bookingCode,
         nama: safeName,
         whatsapp: safeWA,
+        kotaAsal: safeKota,
         paket: form.paket,
         tanggal: form.tanggal,
+        jam: safeJam,
+        jumlahPeserta: pesertaQty,
         jumlah: qty,
         estimasi: totalEstimasi,
         catatan: safeCatatan,
       });
 
-      // Kurangi tampilan slot sementara secara optimis
       if (remainingSlots !== null) {
         setAvailability((prev) =>
           prev
@@ -398,7 +446,17 @@ export default function BookingForm() {
         );
       }
 
-      setForm({ nama: "", whatsapp: "", paket: "", tanggal: "", jumlah: "1", catatan: "" });
+      setForm({
+        nama: "",
+        whatsapp: "",
+        kotaAsal: "",
+        paket: "",
+        tanggal: "",
+        jam: "08:00 WIB",
+        jumlahPeserta: "4",
+        jumlah: "1",
+        catatan: "",
+      });
       setTouched({});
       resetTurnstile();
 
@@ -426,9 +484,7 @@ export default function BookingForm() {
       await navigator.clipboard.writeText(receipt.code);
       setCopiedCode(true);
       setTimeout(() => setCopiedCode(false), 2000);
-    } catch {
-      // Clipboard fallback diabaikan jika tidak diizinkan browser
-    }
+    } catch {}
   };
 
   const toggleNotePreset = (note: string) => {
@@ -440,7 +496,13 @@ export default function BookingForm() {
     });
   };
 
-  const isValid = form.nama.trim() && form.whatsapp.trim() && form.paket && form.tanggal;
+  const isValid =
+    form.nama.trim() &&
+    form.whatsapp.trim() &&
+    form.kotaAsal.trim() &&
+    form.paket &&
+    form.tanggal &&
+    form.jam.trim();
   const hasErrors = Object.keys(errors).length > 0;
   const turnstileMissing = Boolean(TURNSTILE_SITE_KEY && !turnstileToken);
   const isBlocked = !isValid || hasErrors || submitted || cooldown > 0 || turnstileMissing;
@@ -454,13 +516,30 @@ export default function BookingForm() {
   const unitPrice = getPackageUnitPrice(form.paket);
   const estimate = unitPrice
     ? `Rp ${(unitPrice * qty).toLocaleString("id-ID")}`
-    : "Pilih paket terlebih dahulu";
+    : "Pilih paket Jeep terlebih dahulu";
   const maxSelectableQty =
     remainingSlots !== null && remainingSlots > 0
       ? Math.min(MAX_UNITS_PER_DAY, remainingSlots)
       : MAX_UNITS_PER_DAY;
+
   const setQty = (n: number) =>
-    setForm((prev) => ({ ...prev, jumlah: String(Math.min(Math.max(n, 1), maxSelectableQty)) }));
+    setForm((prev) => ({
+      ...prev,
+      jumlah: String(Math.min(Math.max(n, 1), maxSelectableQty)),
+    }));
+
+  const setPeserta = (n: number) => {
+    const clampedPeserta = Math.min(Math.max(n, 1), 60);
+    const suggestedJeeps = Math.min(
+      Math.ceil(clampedPeserta / MAX_PASSENGERS_PER_JEEP),
+      maxSelectableQty
+    );
+    setForm((prev) => ({
+      ...prev,
+      jumlahPeserta: String(clampedPeserta),
+      jumlah: String(Math.max(parseInt(prev.jumlah, 10) || 1, suggestedJeeps)),
+    }));
+  };
 
   return (
     <section id="booking" className="py-12 sm:py-24 bg-[#f5f5f5] border-b border-gray-200 text-[#1c1c1c] overflow-x-clip">
@@ -468,13 +547,13 @@ export default function BookingForm() {
         {/* Section Header */}
         <div className="flex flex-col items-start sm:items-center text-left sm:text-center gap-2 sm:gap-3">
           <span className="text-xs font-extrabold tracking-[0.16em] uppercase text-[#b51b41]">
-            Form Pemesanan
+            Form Reservasi Online
           </span>
           <h2 className="text-2xl sm:text-4xl md:text-5xl font-extrabold text-[#1c1c1c]">
-            Booking ATV Kaliurang
+            Form Booking Jeep Merapi
           </h2>
           <p className="text-gray-500 text-xs sm:text-base max-w-xl leading-relaxed">
-            Lengkapi data berikut. Kode booking dan estimasi biaya dibuat otomatis, konfirmasi dilanjutkan melalui WhatsApp.
+            Lengkapi data pemesanan Anda. 1 Jeep berkapasitas maksimal 4 penumpang (+1 balita). Kode booking dan estimasi biaya dibuat otomatis sebelum lanjut ke WhatsApp.
           </p>
         </div>
 
@@ -516,7 +595,7 @@ export default function BookingForm() {
                 </button>
               </div>
               <p className="text-xs sm:text-sm text-gray-500">
-                Tunjukkan kode ini saat tiba di Basecamp Kaliurang
+                Tunjukkan kode ini kepada admin/driver saat tiba di Basecamp Wisata Merapi
               </p>
             </div>
 
@@ -526,17 +605,27 @@ export default function BookingForm() {
                 <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.nama}</dd>
               </div>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <dt className="text-gray-500 shrink-0">WhatsApp</dt>
+                <dt className="text-gray-500 shrink-0">Nomor WhatsApp</dt>
                 <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.whatsapp}</dd>
               </div>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <dt className="text-gray-500 shrink-0">Paket</dt>
+                <dt className="text-gray-500 shrink-0">Kota Asal</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.kotaAsal}</dd>
+              </div>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Paket Jeep</dt>
                 <dd className="font-semibold text-[#1c1c1c] sm:text-right break-words min-w-0">{receipt.paket}</dd>
               </div>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                <dt className="text-gray-500 shrink-0">Tanggal &amp; Unit</dt>
+                <dt className="text-gray-500 shrink-0">Tanggal &amp; Jam</dt>
                 <dd className="font-semibold text-[#1c1c1c] sm:text-right">
-                  {receipt.tanggal} · {receipt.jumlah} unit
+                  {receipt.tanggal} · {receipt.jam}
+                </dd>
+              </div>
+              <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
+                <dt className="text-gray-500 shrink-0">Jumlah Jeep &amp; Peserta</dt>
+                <dd className="font-semibold text-[#1c1c1c] sm:text-right">
+                  {receipt.jumlah} Jeep ({receipt.jumlahPeserta} peserta)
                 </dd>
               </div>
               <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
@@ -545,7 +634,7 @@ export default function BookingForm() {
               </div>
               {receipt.catatan && (
                 <div className="flex flex-wrap items-baseline justify-between gap-x-4 gap-y-1">
-                  <dt className="text-gray-500 shrink-0">Catatan</dt>
+                  <dt className="text-gray-500 shrink-0">Tambahan</dt>
                   <dd className="font-medium text-gray-700 sm:text-right break-words min-w-0">{receipt.catatan}</dd>
                 </div>
               )}
@@ -560,7 +649,7 @@ export default function BookingForm() {
                   className="w-full inline-flex items-center justify-center gap-2.5 px-6 py-4 bg-[#1c1c1c] hover:bg-black text-white font-bold text-base rounded-xl transition-colors"
                 >
                   <WhatsAppIcon className="w-5 h-5 fill-white shrink-0" />
-                  <span>Kirim Rincian via WhatsApp</span>
+                  <span>Kirim di WhatsApp</span>
                 </a>
               )}
               <button
@@ -574,10 +663,10 @@ export default function BookingForm() {
           </div>
         )}
 
-        {/* Form Card */}
+        {/* Form Card (9 Fields wisatamerapi.id) */}
         <div className="bg-white border border-gray-200 rounded-2xl p-5 sm:p-10 shadow-sm">
           <form onSubmit={handleSubmit} className="flex flex-col gap-5 sm:gap-6 relative">
-            {/* Honeypot field tersembunyi untuk menjebak bot pengisi form otomatis */}
+            {/* Honeypot field tersembunyi untuk menjebak bot */}
             <div aria-hidden="true" className="absolute -left-[9999px] w-px h-px overflow-hidden opacity-0 pointer-events-none">
               <label htmlFor="website_hp">Website</label>
               <input
@@ -592,11 +681,12 @@ export default function BookingForm() {
             </div>
 
             <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 border-b border-gray-200">
-              Data Pemesan
+              1. Data Pemesan
             </p>
 
+            {/* Field 1: Nama */}
             <div className="flex flex-col gap-1.5 sm:gap-2">
-              <label htmlFor="nama" className={labelClass}>Nama Lengkap</label>
+              <label htmlFor="nama" className={labelClass}>Nama</label>
               <input
                 type="text"
                 id="nama"
@@ -604,35 +694,55 @@ export default function BookingForm() {
                 value={form.nama}
                 onChange={handleChange}
                 onBlur={() => handleBlur("nama")}
-                placeholder="Contoh: Budi Santoso"
+                placeholder="Tuliskan nama Anda.."
                 required
                 className={inputClass(errors.nama)}
               />
               {errors.nama && <p className="text-red-600 text-xs font-medium">{errors.nama}</p>}
             </div>
 
-            <div className="flex flex-col gap-1.5 sm:gap-2">
-              <label htmlFor="whatsapp" className={labelClass}>Nomor WhatsApp</label>
-              <input
-                type="tel"
-                id="whatsapp"
-                name="whatsapp"
-                value={form.whatsapp}
-                onChange={handleChange}
-                onBlur={() => handleBlur("whatsapp")}
-                placeholder="Contoh: 081234567890"
-                required
-                className={inputClass(errors.whatsapp)}
-              />
-              {errors.whatsapp && <p className="text-red-600 text-xs font-medium">{errors.whatsapp}</p>}
+            {/* Field 2 & 3: Nomor WhatsApp & Kota Asal */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
+                <label htmlFor="whatsapp" className={labelClass}>Nomor Whatsapp</label>
+                <input
+                  type="tel"
+                  id="whatsapp"
+                  name="whatsapp"
+                  value={form.whatsapp}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur("whatsapp")}
+                  placeholder="misal : 081226983990"
+                  required
+                  className={inputClass(errors.whatsapp)}
+                />
+                {errors.whatsapp && <p className="text-red-600 text-xs font-medium">{errors.whatsapp}</p>}
+              </div>
+
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
+                <label htmlFor="kotaAsal" className={labelClass}>Kota Asal</label>
+                <input
+                  type="text"
+                  id="kotaAsal"
+                  name="kotaAsal"
+                  value={form.kotaAsal}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur("kotaAsal")}
+                  placeholder="Kota asal Anda.."
+                  required
+                  className={inputClass(errors.kotaAsal)}
+                />
+                {errors.kotaAsal && <p className="text-red-600 text-xs font-medium">{errors.kotaAsal}</p>}
+              </div>
             </div>
 
             <p className="text-xs font-extrabold tracking-wider uppercase text-[#1c1c1c] pb-2.5 pt-2 border-b border-gray-200">
-              Detail Sewa
+              2. Detail Paket &amp; Jadwal Jeep
             </p>
 
+            {/* Field 4: Paket Jeep */}
             <div className="flex flex-col gap-1.5 sm:gap-2">
-              <label htmlFor="paket" className={labelClass}>Paket</label>
+              <label htmlFor="paket" className={labelClass}>Paket Jeep</label>
               <select
                 id="paket"
                 name="paket"
@@ -642,7 +752,7 @@ export default function BookingForm() {
                 required
                 className={`${inputClass(errors.paket)} h-[50px] sm:h-[54px] cursor-pointer`}
               >
-                <option value="">Pilih paket ATV</option>
+                <option value="">Pilih Paket..</option>
                 {PACKAGE_OPTIONS.map((pkg) => (
                   <option key={pkg} value={pkg}>
                     {pkg}
@@ -652,6 +762,7 @@ export default function BookingForm() {
               {errors.paket && <p className="text-red-600 text-xs font-medium">{errors.paket}</p>}
             </div>
 
+            {/* Field 5 & 6: Tanggal & Jam */}
             <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
               <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
                 <label htmlFor="tanggal" className={labelClass}>Tanggal</label>
@@ -671,7 +782,7 @@ export default function BookingForm() {
                 {/* Real-time slot availability badge */}
                 {availabilityLoading && (
                   <p className="text-xs text-gray-500 font-medium">
-                    Mengecek sisa unit tersedia...
+                    Mengecek sisa unit Jeep tersedia...
                   </p>
                 )}
                 {!availabilityLoading &&
@@ -688,14 +799,84 @@ export default function BookingForm() {
                       }`}
                     >
                       {availability.remaining === 0
-                        ? "Kuota penuh (0 unit tersisa). Silakan pilih tanggal lain."
-                        : `Tersedia ${availability.remaining} dari ${availability.maxUnits} unit untuk tanggal ini`}
+                        ? "Kuota Jeep penuh (0 unit tersisa). Silakan pilih tanggal lain."
+                        : `Tersedia ${availability.remaining} dari ${availability.maxUnits} unit Jeep untuk tanggal ini`}
                     </p>
                   )}
               </div>
 
               <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
-                <label htmlFor="jumlah" className={labelClass}>Jumlah Unit</label>
+                <label htmlFor="jam" className={labelClass}>Jam</label>
+                <select
+                  id="jam"
+                  name="jam"
+                  value={form.jam}
+                  onChange={handleChange}
+                  onBlur={() => handleBlur("jam")}
+                  required
+                  className={`${inputClass(errors.jam)} h-[50px] sm:h-[54px] cursor-pointer`}
+                >
+                  {DEPARTURE_TIMES.map((t) => (
+                    <option key={t} value={t}>
+                      {t}
+                    </option>
+                  ))}
+                </select>
+                {errors.jam && <p className="text-red-600 text-xs font-medium">{errors.jam}</p>}
+              </div>
+            </div>
+
+            {/* Field 7 & 8: Jumlah Peserta & Jumlah Jeep */}
+            <div className="flex flex-col sm:flex-row gap-4 sm:gap-5">
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
+                <label htmlFor="jumlahPeserta" className={labelClass}>
+                  Jumlah peserta <span className="font-normal text-gray-400">(orang)</span>
+                </label>
+                <div
+                  className={`flex items-center justify-between h-[50px] sm:h-[54px] border rounded-xl px-1.5 bg-white ${
+                    errors.jumlahPeserta ? "border-red-500" : "border-gray-300"
+                  }`}
+                >
+                  <button
+                    type="button"
+                    onClick={() => setPeserta(pesertaQty - 1)}
+                    disabled={pesertaQty <= 1}
+                    aria-label="Kurangi jumlah peserta"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
+                  >
+                    &minus;
+                  </button>
+                  <input
+                    type="number"
+                    id="jumlahPeserta"
+                    name="jumlahPeserta"
+                    value={form.jumlahPeserta}
+                    onChange={handleChange}
+                    onBlur={() => setPeserta(parseInt(form.jumlahPeserta, 10) || 1)}
+                    min="1"
+                    max="60"
+                    placeholder="misal : 10 orang"
+                    className="w-20 min-w-0 text-center font-bold text-base outline-none bg-transparent [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setPeserta(pesertaQty + 1)}
+                    disabled={pesertaQty >= 60}
+                    aria-label="Tambah jumlah peserta"
+                    className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
+                  >
+                    +
+                  </button>
+                </div>
+                {errors.jumlahPeserta && (
+                  <p className="text-red-600 text-xs font-medium">{errors.jumlahPeserta}</p>
+                )}
+              </div>
+
+              <div className="w-full sm:flex-1 min-w-0 flex flex-col gap-1.5 sm:gap-2">
+                <label htmlFor="jumlah" className={labelClass}>
+                  Jumlah Jeep <span className="font-normal text-gray-400">(1 Jeep max 4 penumpang)</span>
+                </label>
                 <div
                   className={`flex items-center justify-between h-[50px] sm:h-[54px] border rounded-xl px-1.5 bg-white ${
                     errors.jumlah ? "border-red-500" : "border-gray-300"
@@ -705,7 +886,7 @@ export default function BookingForm() {
                     type="button"
                     onClick={() => setQty(qty - 1)}
                     disabled={qty <= 1}
-                    aria-label="Kurangi jumlah unit"
+                    aria-label="Kurangi jumlah Jeep"
                     className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     &minus;
@@ -725,19 +906,25 @@ export default function BookingForm() {
                     type="button"
                     onClick={() => setQty(qty + 1)}
                     disabled={qty >= maxSelectableQty || remainingSlots === 0}
-                    aria-label="Tambah jumlah unit"
+                    aria-label="Tambah jumlah Jeep"
                     className="w-10 h-10 rounded-lg bg-gray-100 hover:bg-gray-200 disabled:opacity-40 disabled:cursor-not-allowed text-lg font-bold cursor-pointer transition-colors shrink-0"
                   >
                     +
                   </button>
                 </div>
+                {qty < minRequiredJeeps && !errors.jumlah && (
+                  <p className="text-amber-700 text-xs font-medium">
+                    Info: Untuk {pesertaQty} peserta disarankan minimal {minRequiredJeeps} unit Jeep.
+                  </p>
+                )}
                 {errors.jumlah && <p className="text-red-600 text-xs font-medium">{errors.jumlah}</p>}
               </div>
             </div>
 
+            {/* Field 9: Tambahan */}
             <div className="flex flex-col gap-1.5 sm:gap-2">
               <label htmlFor="catatan" className={labelClass}>
-                Catatan <span className="font-medium text-gray-400">(opsional)</span>
+                Tambahan <span className="font-medium text-gray-400">(opsional)</span>
               </label>
               <div className="flex flex-wrap gap-2">
                 {notePresets.map((preset) => (
@@ -757,14 +944,14 @@ export default function BookingForm() {
                 value={form.catatan}
                 onChange={handleChange}
                 rows={3}
-                placeholder="Contoh: Rombongan 6 orang, request dokumentasi foto"
+                placeholder="misal : dokumentasi foto & drone"
                 className={`${inputBase} border-gray-300 focus:border-[#1c1c1c] resize-none`}
               />
             </div>
 
             <div className="flex flex-wrap items-center justify-between gap-2 bg-gray-50 border border-gray-200 rounded-xl px-4 py-3.5 sm:px-5 sm:py-4">
               <span className="text-xs sm:text-sm text-gray-500 font-semibold">
-                Estimasi total (bayar di lokasi)
+                Estimasi total ({qty} Jeep · bayar di lokasi)
               </span>
               <strong className={unitPrice ? "text-lg sm:text-xl font-extrabold text-[#1c1c1c]" : "text-xs sm:text-sm font-semibold text-gray-400"}>
                 {estimate}
@@ -799,13 +986,13 @@ export default function BookingForm() {
               ) : (
                 <>
                   <WhatsAppIcon className="w-5 h-5 fill-current shrink-0" />
-                  <span>Kirim Booking via WhatsApp</span>
+                  <span>Kirim di Whatsapp</span>
                 </>
               )}
             </button>
 
             <p className="text-center text-[11px] sm:text-xs text-gray-500">
-              Maksimal {MAX_UNITS_PER_DAY} unit per hari · Admin kami akan langsung merespon konfirmasi jadwal booking Anda.
+              1 Jeep maksimal 4 penumpang (+1 balita) · Admin Wisata Merapi akan langsung merespons konfirmasi jadwal Anda.
             </p>
           </form>
         </div>

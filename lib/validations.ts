@@ -1,7 +1,6 @@
 /**
  * lib/validations.ts
- * Schema validasi Zod — dipakai di API Route (server-side)
- * Validasi ini tidak bisa dibypass dari browser, berbeda dengan HTML required
+ * Schema validasi Zod — dipakai di API Route (server-side) untuk 9 field Form Booking Jeep Lava Tour Merapi
  */
 import { z } from "zod";
 import { MAX_UNITS_PER_DAY, PACKAGE_OPTIONS, getTodayJakartaDateString } from "./constants";
@@ -21,8 +20,15 @@ export const BookingSchema = z.object({
     .refine((digits) => digits.length <= 15, "Nomor WhatsApp maksimal 15 digit")
     .transform((digits) => (digits.startsWith("0") ? `62${digits.slice(1)}` : digits)),
 
+  kotaAsal: z
+    .string()
+    .trim()
+    .min(2, "Kota asal minimal 2 karakter")
+    .max(80, "Kota asal maksimal 80 karakter")
+    .regex(/^[\p{L}0-9\s\-.,/]+$/u, "Format kota asal tidak valid"),
+
   paket: z.enum(PACKAGE_OPTIONS, {
-    error: "Paket tidak valid",
+    error: "Pilih paket Jeep yang valid",
   }),
 
   tanggal: z
@@ -32,15 +38,27 @@ export const BookingSchema = z.object({
       return date >= getTodayJakartaDateString();
     }, "Tanggal tidak boleh di masa lalu"),
 
+  jam: z
+    .string()
+    .trim()
+    .min(3, "Pilih jam keberangkatan")
+    .max(40, "Format jam tidak valid"),
+
+  jumlahPeserta: z
+    .number()
+    .int("Jumlah peserta harus bilangan bulat")
+    .min(1, "Minimal 1 peserta")
+    .max(60, "Maksimal 60 peserta per pemesanan"),
+
   jumlah: z
     .number()
-    .int("Jumlah harus bilangan bulat")
-    .min(1, "Minimal 1 unit")
-    .max(MAX_UNITS_PER_DAY, `Maksimal ${MAX_UNITS_PER_DAY} unit per hari`),
+    .int("Jumlah Jeep harus bilangan bulat")
+    .min(1, "Minimal 1 unit Jeep")
+    .max(MAX_UNITS_PER_DAY, `Maksimal ${MAX_UNITS_PER_DAY} unit Jeep per hari`),
 
   catatan: z
     .string()
-    .max(300, "Catatan maksimal 300 karakter")
+    .max(300, "Tambahan/catatan maksimal 300 karakter")
     .optional()
     .nullable()
     .default(null),

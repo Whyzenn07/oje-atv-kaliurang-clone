@@ -70,25 +70,20 @@ export async function appendBookingToGoogleSheets(
   });
 
   const estimasiTotal = getPackageUnitPrice(booking.paket) * booking.jumlah;
-  const fullCatatan = [
-    `Jam: ${booking.jam}`,
-    `Peserta: ${booking.jumlahPeserta} org`,
-    `Kota Asal: ${booking.kotaAsal}`,
-    booking.catatan ? `Tambahan: ${booking.catatan}` : null,
-  ]
-    .filter(Boolean)
-    .join(" | ");
 
   const payload = {
     secret: webhookSecret,
     bookingCode: sanitizeSheetCell(booking.bookingCode),
     nama: sanitizeSheetCell(booking.nama),
     whatsapp: sanitizeSheetCell(booking.whatsapp),
+    kotaAsal: sanitizeSheetCell(booking.kotaAsal),
     paket: sanitizeSheetCell(booking.paket),
     tanggal: sanitizeSheetCell(booking.tanggal),
+    jam: sanitizeSheetCell(booking.jam),
     jumlah: booking.jumlah,
+    jumlahPeserta: booking.jumlahPeserta,
     estimasiTotal,
-    catatan: sanitizeSheetCell(fullCatatan || "-"),
+    catatan: sanitizeSheetCell(booking.catatan || "-"),
     status: booking.status,
     waktuMasuk: sanitizeSheetCell(createdFormatted),
     bookingId: sanitizeSheetCell(booking.bookingId),

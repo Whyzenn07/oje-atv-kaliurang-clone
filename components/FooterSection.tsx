@@ -37,11 +37,11 @@ export default function FooterSection() {
                 scrollTo("#hero");
               }}
               className="inline-block mb-4 transition-transform hover:opacity-90"
-              aria-label="OJE ATV Kaliurang Home"
+              aria-label="Wisata Merapi Home"
             >
               <Image
                 src={SITE_ASSETS.logo}
-                alt="O.J.E ATV KALIURANG"
+                alt="Wisata Lava Tour Merapi"
                 width={160}
                 height={56}
                 className="h-12 sm:h-14 w-auto object-contain"
@@ -60,7 +60,7 @@ export default function FooterSection() {
                 href={CONTACT.TIKTOK_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="TIKTOK OJE ATV Kaliurang"
+                aria-label="TikTok Wisata Merapi"
                 className="w-10 h-10 rounded-full bg-[#171717] hover:bg-black border border-white/10 flex items-center justify-center transition-all hover:scale-110 shadow"
               >
                 <TiktokIcon className="w-5 h-5 text-white" />
@@ -69,7 +69,7 @@ export default function FooterSection() {
                 href={CONTACT.INSTAGRAM_URL}
                 target="_blank"
                 rel="noopener noreferrer"
-                aria-label="Instagram OJE ATV Kaliurang"
+                aria-label="Instagram Wisata Merapi"
                 className="w-10 h-10 rounded-full bg-gradient-to-tr from-[#f09433] via-[#dc2743] to-[#bc1888] flex items-center justify-center border border-white/10 transition-all hover:scale-110 shadow-md"
               >
                 <InstagramIcon className="w-5 h-5 text-white" />

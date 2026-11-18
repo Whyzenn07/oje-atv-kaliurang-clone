@@ -124,7 +124,7 @@ export default function LocationSection() {
               allowFullScreen
               loading="lazy"
               referrerPolicy="no-referrer-when-downgrade"
-              title="Lokasi OJE ATV Kaliurang di Google Maps"
+              title="Lokasi Basecamp Wisata Lava Tour Merapi di Google Maps"
               className="w-full h-full"
             />
           </div>

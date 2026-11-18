@@ -16,6 +16,18 @@ function loadEnv() {
   return env;
 }
 
+function getUnitPrice(paket) {
+  const str = String(paket || "");
+  if (str.includes("750.000")) return 750000;
+  if (str.includes("650.000")) return 650000;
+  if (str.includes("600.000")) return 600000;
+  if (str.includes("550.000")) return 550000;
+  if (str.includes("500.000")) return 500000;
+  if (str.includes("450.000")) return 450000;
+  if (str.includes("350.000")) return 350000;
+  return 300000;
+}
+
 async function exportToCSV() {
   const env = loadEnv();
   const supabaseUrl = env.SUPABASE_URL || process.env.SUPABASE_URL;
@@ -44,11 +56,14 @@ async function exportToCSV() {
     "Kode Booking",
     "Nama Customer",
     "Nomor WhatsApp",
-    "Paket ATV",
-    "Tanggal Sewa",
-    "Jumlah Unit",
+    "Kota Asal",
+    "Paket Jeep",
+    "Tanggal Tour",
+    "Jam Keberangkatan",
+    "Jumlah Jeep",
+    "Jumlah Peserta",
     "Estimasi Total (Rp)",
-    "Catatan Khusus",
+    "Tambahan / Catatan",
     "Status",
     "Waktu Masuk",
   ];
@@ -56,6 +71,9 @@ async function exportToCSV() {
   const rows = data.map((item) => {
     let wa = item.whatsapp || "-";
     let kode = item.booking_code || item.id.substring(0, 8).toUpperCase();
+    let kotaAsal = item.kota_asal || "-";
+    let jam = item.jam || "-";
+    let jumlahPeserta = item.jumlah_peserta || "-";
     let catatanBersih = item.catatan || "";
 
     if (wa === "-") {
@@ -68,12 +86,30 @@ async function exportToCSV() {
       if (kodeMatch) kode = kodeMatch[1].trim();
     }
 
-    const unitPrice = String(item.paket || "").includes("350.000") ? 350000 : 300000;
+    if (kotaAsal === "-") {
+      const kotaMatch = item.catatan?.match(/\[KOTA:\s*([^\]]+)\]/);
+      if (kotaMatch) kotaAsal = kotaMatch[1].trim();
+    }
+
+    if (jam === "-") {
+      const jamMatch = item.catatan?.match(/\[JAM:\s*([^\]]+)\]/);
+      if (jamMatch) jam = jamMatch[1].trim();
+    }
+
+    if (jumlahPeserta === "-") {
+      const pesertaMatch = item.catatan?.match(/\[PESERTA:\s*([^\]]+)\]/);
+      if (pesertaMatch) jumlahPeserta = pesertaMatch[1].replace(/org/i, "").trim();
+    }
+
+    const unitPrice = getUnitPrice(item.paket);
     const estimasi = item.estimasi_total ?? unitPrice * (Number(item.jumlah) || 1);
 
     catatanBersih = catatanBersih
       .replace(/\[WA:[^\]]+\]/g, "")
       .replace(/\[KODE:[^\]]+\]/g, "")
+      .replace(/\[JAM:[^\]]+\]/g, "")
+      .replace(/\[PESERTA:[^\]]+\]/g, "")
+      .replace(/\[KOTA:[^\]]+\]/g, "")
       .replace(/^[\s\-]+|[\s\-]+$/g, "");
 
     const dateFormatted = new Date(item.created_at).toLocaleString("id-ID", {
@@ -84,9 +120,12 @@ async function exportToCSV() {
       kode,
       item.nama,
       wa,
+      kotaAsal,
       item.paket,
       item.tanggal,
+      jam,
       item.jumlah,
+      jumlahPeserta,
       estimasi,
       catatanBersih || "-",
       item.status,
@@ -103,7 +142,7 @@ async function exportToCSV() {
   // UTF-8 BOM (\uFEFF) agar Microsoft Excel langsung membaca tanda koma dan huruf dengan rapi
   const csvContent = "\uFEFF" + [headers.join(","), ...rows].join("\r\n");
 
-  const outputPath = path.join(__dirname, "REPORT_BOOKING_OJE_ATV.csv");
+  const outputPath = path.join(__dirname, "REPORT_BOOKING_WISATA_MERAPI.csv");
   fs.writeFileSync(outputPath, csvContent, "utf8");
   console.log("Sukses! File laporan Excel dibuat di:", outputPath);
 }

@@ -1,41 +1,55 @@
-# O.J.E – ATV Kaliurang Merapi
+# Wisata Merapi – Lava Tour Jeep Merapi Yogyakarta
 
-Website profil dan sistem pemesanan online untuk **O.J.E – ATV Kaliurang Merapi | Petualangan Wisata ATV Jogja**, dibangun menggunakan **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS v4 (Pure Flexbox)**, **Supabase**, **Resend**, dan **Google Sheets Webhook**.
+Website profil dan sistem reservasi online untuk **Wisata Merapi – Lava Tour Jeep Merapi Yogyakarta**, menggabungkan konten resmi `wisatamerapi.id` (6 Paket Jeep Lava Tour, 12 Galeri Destinasi, 9 Field Form Booking, dan FAQ) dengan desain **Pure Flexbox** modern berbasis **Next.js 16 (App Router)**, **React 19**, **Tailwind CSS v4**, **Supabase**, **Resend**, dan **Google Sheets Webhook**.
 
 ---
 
 ## 🌐 Live Demo & Pemesanan Riil
 
-- **Website Utama (Live Production)**: [O.J.E – Atv Kaliurang Merapi | Petualangan Wisata ATV Jogja](https://oje-atv-kaliurang-clone-f2m1.vercel.app/)
-- **Langsung ke Form Booking Riil**: [Form Pemesanan ATV Kaliurang (`#booking`)](https://oje-atv-kaliurang-clone-f2m1.vercel.app/#booking)
+- **Website Utama (Live Production)**: [Wisata Merapi – Lava Tour Jeep Merapi Yogyakarta](https://oje-atv-kaliurang-clone-f2m1.vercel.app/)
+- **Langsung ke Form Booking Riil**: [Form Booking Jeep Merapi (`#booking`)](https://oje-atv-kaliurang-clone-f2m1.vercel.app/#booking)
 
 ---
 
 ## ✨ Fitur Utama
 
-1. **Sistem Booking End-to-End & Cek Slot Real-Time**:
+1. **6 Paket Jeep Lava Tour Merapi (`#harga`)**:
+   - **Paket 1** (`Rp 450.000 / Jeep`), **Paket 1B** (`Rp 500.000 / Jeep`), **Paket 2** (`Rp 550.000 / Jeep`), **Paket Sunrise** (`Rp 600.000 / Jeep`), **Paket 3** (`Rp 650.000 / Jeep`), dan **Paket 4** (`Rp 750.000 / Jeep`).
+   - Klik tombol paket otomatis mengisi pilihan paket & jam keberangkatan di form `#booking`.
+2. **Form Booking 9 Field + Cek Slot Real-Time**:
+   - Mencakup 9 field lengkap: `Nama`, `Nomor WhatsApp`, `Kota Asal`, `Paket Jeep`, `Tanggal`, `Jam`, `Jumlah Peserta`, `Jumlah Jeep`, dan `Tambahan`.
+   - Otomatis menghitung rekomendasi minimal unit Jeep (`1 Jeep maks. 4 penumpang`) dan **Estimasi Total Biaya**.
    - Pengecekan sisa kuota unit harian otomatis (`GET /api/availability?tanggal=YYYY-MM-DD`, maksimal 15 unit/hari).
-   - Pembuatan **Kode Booking CSPRNG** (`OJE-MMDD-XXXXX`) beserta tiket ringkasan (resi) yang dapat disalin dan dikirim langsung ke WhatsApp Admin.
-   - Penyimpanan data terstruktur ke **Supabase PostgreSQL** (dilengkapi post-insert guard anti-*race condition* kuota harian).
-   - Sinkronisasi otomatis non-blocking ke **Google Sheets** (via Apps Script Webhook dengan proteksi *Formula Injection*) dan notifikasi email admin via **Resend**.
-2. **Keamanan Berlapis**:
+   - Pembuatan **Kode Booking CSPRNG** (`WM-MMDD-XXXXX`) beserta tiket ringkasan (resi) yang dapat disalin dan dikirim langsung ke WhatsApp Admin.
+   - Penyimpanan 9 field ke **kolom terpisah** di **Supabase PostgreSQL** (`supabase-schema.sql`) dan **Google Sheets** (`docs/google-apps-script-booking.gs`), ditambah notifikasi email via **Resend**.
+3. **Keamanan Berlapis**:
    - Validasi skema server-side ketat menggunakan **Zod** (`lib/validations.ts`).
    - Proteksi anti-bot **Honeypot** + dukungan opsional **Cloudflare Turnstile** (`lib/turnstile.ts`).
-   - **IP & Global Rate Limiting** (`lib/ratelimit.ts`) yang dieksekusi setelah validasi agar kesalahan ketik pengguna tidak mengunci kuota IP.
+   - **IP & Global Rate Limiting** (`lib/ratelimit.ts`) setelah validasi.
    - Security Headers lengkap (`Content-Security-Policy`, `HSTS`, `X-Frame-Options: SAMEORIGIN`, `X-Content-Type-Options: nosniff`, `Referrer-Policy`, `Permissions-Policy`) di `next.config.ts`.
-3. **Desain Responsif Pure Flexbox (Desktop, Android, & iOS)**:
-   - Tata letak 100% berbasis Flexbox, bebas *horizontal overflow* maupun *scroll lock* di perangkat mobile.
-   - Optimasi gambar menggunakan `next/image` dan variable font `Manrope` & `Montserrat` melalui `next/font/google`.
 4. **Konfigurasi Aset Terpusat (`SITE_ASSETS`)**:
-   - Seluruh gambar, logo, slide hero, galeri, testimoni, link video YouTube, dan Google Maps terpusat di satu file [`lib/constants.ts`](./lib/constants.ts) untuk memudahkan penggantian aset client.
+   - Seluruh gambar, logo, slide hero, 6 paket Jeep, galeri destinasi, testimoni, link video YouTube, dan Google Maps terpusat di satu file [`lib/constants.ts`](./lib/constants.ts).
 
 ---
 
-## 🖼️ Cara Mengganti Gambar, Galeri, & Video Client
+## 📊 Struktur Kolom Database Supabase & Google Sheets (14 Kolom Terpisah)
 
-1. Simpan file gambar baru ke dalam folder `public/images/`.
-2. Buka [`lib/constants.ts`](./lib/constants.ts) dan sesuaikan path pada objek `SITE_ASSETS` (logo, `heroSlides`, `profilImage`, `kenapaKamiCards`, `pricing`, `tentangKami`, `testimonials`, `galleryImages`, `location`).
-3. Untuk video di bagian **Tentang Kami**, cukup tempelkan link YouTube biasa (`https://www.youtube.com/watch?v=...` atau `https://youtu.be/...`) pada `SITE_ASSETS.tentangKami.videoUrl`.
+| No | Kolom Google Sheets / CSV | Kolom Tabel `public.bookings` Supabase |
+| :--- | :--- | :--- |
+| 1 | `Kode Booking` | `booking_code` |
+| 2 | `Nama Customer` | `nama` |
+| 3 | `Nomor WhatsApp` | `whatsapp` |
+| 4 | `Kota Asal` | `kota_asal` |
+| 5 | `Paket Jeep` | `paket` |
+| 6 | `Tanggal Tour` | `tanggal` |
+| 7 | `Jam Keberangkatan` | `jam` |
+| 8 | `Jumlah Jeep` | `jumlah` |
+| 9 | `Jumlah Peserta` | `jumlah_peserta` |
+| 10 | `Estimasi Total (Rp)` | `estimasi_total` |
+| 11 | `Tambahan / Catatan` | `catatan` |
+| 12 | `Status` | `status` |
+| 13 | `Waktu Masuk (WIB)` | `created_at` |
+| 14 | `ID Database` | `id` |
 
 ---
 
@@ -49,20 +63,10 @@ Website profil dan sistem pemesanan online untuk **O.J.E – ATV Kaliurang Merap
    ```bash
    cp .env.local.example .env.local
    ```
-   Isi variabel di `.env.local` (`SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `GOOGLE_SHEETS_WEBHOOK_URL`, `GOOGLE_SHEETS_SECRET`, dll.).
-3. **Siapkan tabel database Supabase**:
-   Jalankan query di [`supabase-schema.sql`](./supabase-schema.sql) pada **Supabase SQL Editor**.
+3. **Siapkan / Migrasi Tabel Supabase & Google Apps Script**:
+   - Jalankan query di [`supabase-schema.sql`](./supabase-schema.sql) pada **Supabase SQL Editor**.
+   - Salin isi [`docs/google-apps-script-booking.gs`](./docs/google-apps-script-booking.gs) ke **Google Sheets > Extensions > Apps Script** lalu **Deploy > Manage deployments > New version**.
 4. **Jalankan development server**:
    ```bash
    npm run dev
    ```
-   Buka `http://localhost:3000` di browser.
-
----
-
-## 🛠️ Perintah Utilitas
-
-- `npm run dev` — Menjalankan server development lokal.
-- `npm run build` — Membuat production build Next.js.
-- `npm run lint` — Menjalankan pemeriksaan kode ESLint.
-- `npm run export` — Mengekspor data booking dari Supabase ke file CSV/Excel (`REPORT_BOOKING_OJE_ATV.csv`).

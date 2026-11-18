@@ -121,7 +121,7 @@ export default function HeroSection() {
           href={CONTACT.TIKTOK_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="TikTok OJE ATV Kaliurang"
+          aria-label="TikTok Wisata Merapi"
           className="w-12 h-12 rounded-full bg-white/30 hover:bg-black hover:border-black hover:shadow-[0_0_20px_rgba(255,0,80,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-1 group"
         >
           <TiktokIcon className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
@@ -131,7 +131,7 @@ export default function HeroSection() {
           href={CONTACT.INSTAGRAM_URL}
           target="_blank"
           rel="noopener noreferrer"
-          aria-label="Instagram OJE ATV Kaliurang"
+          aria-label="Instagram Wisata Merapi"
           className="w-12 h-12 rounded-full bg-white/30 hover:bg-gradient-to-tr hover:from-[#f09433] hover:via-[#dc2743] hover:to-[#bc1888] hover:border-transparent hover:shadow-[0_0_20px_rgba(225,48,108,0.6)] backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-xl transition-all duration-300 hover:scale-115 active:scale-95 animate-social-float-2 group"
         >
           <InstagramIcon className="w-5 h-5 text-white drop-shadow group-hover:scale-110 transition-transform" />
@@ -221,7 +221,7 @@ export default function HeroSection() {
             href={CONTACT.TIKTOK_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="TikTok OJE ATV Kaliurang"
+            aria-label="TikTok Wisata Merapi"
             className="w-11 h-11 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-lg active:scale-95"
           >
             <TiktokIcon className="w-4 h-4 text-white" />
@@ -230,7 +230,7 @@ export default function HeroSection() {
             href={CONTACT.INSTAGRAM_URL}
             target="_blank"
             rel="noopener noreferrer"
-            aria-label="Instagram OJE ATV Kaliurang"
+            aria-label="Instagram Wisata Merapi"
             className="w-11 h-11 rounded-full bg-white/25 backdrop-blur-md flex items-center justify-center border border-white/40 text-white shadow-lg active:scale-95"
           >
             <InstagramIcon className="w-4 h-4 text-white" />

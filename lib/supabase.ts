@@ -40,14 +40,17 @@ export const supabase = {
     getSupabaseClient().from(...args),
 };
 
-// Type untuk data booking yang masuk dari form
+// Type untuk data booking yang masuk dari form (9 field lengkap)
 export type BookingInsert = {
   booking_code?: string | null;
   nama: string;
   whatsapp?: string | null;
+  kota_asal?: string | null;
   paket: string;
   tanggal: string;
+  jam?: string | null;
   jumlah: number;
+  jumlah_peserta?: number | null;
   estimasi_total?: number | null;
   catatan: string | null;
   status: "PENDING" | "CONFIRMED" | "CANCELLED";

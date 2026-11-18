@@ -1,6 +1,6 @@
 /**
- * Google Apps Script — Webhook Penerima Booking OJE ATV Kaliurang
- * Tempelkan kode ini di Google Sheets > Extensions > Apps Script.
+ * Google Apps Script — Webhook Penerima Booking Wisata Lava Tour Merapi
+ * Tempelkan kode ini di Google Sheets > Extensions > Apps Script, lalu Deploy > Manage deployments > Edit > Version: New version.
  *
  * Keamanan:
  * - Set Script Property bernama WEBHOOK_SECRET (atau ganti WEBHOOK_SECRET_FALLBACK di bawah)
@@ -14,15 +14,19 @@ const PLACEHOLDER_SECRET = "GANTI_DENGAN_SECRET_ACAK_MIN_32_KARAKTER";
 // Opsional jika tidak memakai Script Properties, isi di sini (harus sama dengan GOOGLE_SHEETS_SECRET):
 const WEBHOOK_SECRET_FALLBACK = PLACEHOLDER_SECRET;
 
+// 14 Kolom Terpisah (9 Field Form Booking + Kode, Estimasi, Status, Waktu, ID)
 const HEADERS = [
   "Kode Booking",
   "Nama Customer",
   "Nomor WhatsApp",
-  "Paket ATV",
-  "Tanggal Sewa",
-  "Jumlah Unit",
+  "Kota Asal",
+  "Paket Jeep",
+  "Tanggal Tour",
+  "Jam Keberangkatan",
+  "Jumlah Jeep",
+  "Jumlah Peserta",
   "Estimasi Total (Rp)",
-  "Catatan Khusus",
+  "Tambahan / Catatan",
   "Status",
   "Waktu Masuk (WIB)",
   "ID Database",
@@ -59,6 +63,17 @@ function getOrCreateSheet() {
     headerRange.setBackground("#1C1C1C");
     headerRange.setFontColor("#FFFFFF");
     sheet.setFrozenRows(1);
+  } else {
+    // Pastikan baris header sinkron dengan 14 kolom terbaru
+    const currentHeaders = sheet.getRange(1, 1, 1, HEADERS.length).getValues()[0];
+    if (currentHeaders[3] !== "Kota Asal" || currentHeaders.length < HEADERS.length) {
+      const headerRange = sheet.getRange(1, 1, 1, HEADERS.length);
+      headerRange.setValues([HEADERS]);
+      headerRange.setFontWeight("bold");
+      headerRange.setBackground("#1C1C1C");
+      headerRange.setFontColor("#FFFFFF");
+      sheet.setFrozenRows(1);
+    }
   }
 
   return sheet;
@@ -112,9 +127,12 @@ function doPost(e) {
       bookingCode,
       sanitizeCell(data.nama || "-"),
       sanitizeCell(data.whatsapp || "-"),
+      sanitizeCell(data.kotaAsal || "-"),
       sanitizeCell(data.paket || "-"),
       sanitizeCell(data.tanggal || "-"),
+      sanitizeCell(data.jam || "-"),
       Number(data.jumlah) || 1,
+      Number(data.jumlahPeserta) || 1,
       Number(data.estimasiTotal) || 0,
       sanitizeCell(data.catatan || "-"),
       sanitizeCell(data.status || "PENDING"),
@@ -125,10 +143,11 @@ function doPost(e) {
     const targetRow = lastRow + 1;
     const rowRange = sheet.getRange(targetRow, 1, 1, rowValues.length);
 
-    // Format teks untuk kolom WA & Tanggal Sewa agar nol di depan tidak hilang
+    // Format teks untuk kolom WA (kolom 3), Tanggal (kolom 6), Jam (kolom 7) & ribuan untuk Estimasi (kolom 10)
     sheet.getRange(targetRow, 3).setNumberFormat("@");
-    sheet.getRange(targetRow, 5).setNumberFormat("@");
-    sheet.getRange(targetRow, 7).setNumberFormat("#,##0");
+    sheet.getRange(targetRow, 6).setNumberFormat("@");
+    sheet.getRange(targetRow, 7).setNumberFormat("@");
+    sheet.getRange(targetRow, 10).setNumberFormat("#,##0");
 
     rowRange.setValues([rowValues]);
 
@@ -142,4 +161,3 @@ function doPost(e) {
     lock.releaseLock();
   }
 }
-

@@ -67,12 +67,12 @@ export default function TentangKamiSection() {
             <button
               type="button"
               onClick={() => setVideoOpen(true)}
-              aria-label="Putar video petualangan ATV Kaliurang"
+              aria-label="Putar video petualangan Wisata Lava Tour Merapi"
               className="relative w-full text-left block rounded-2xl overflow-hidden shadow-2xl border border-white/10 group cursor-pointer aspect-video"
             >
               <Image
                 src={SITE_ASSETS.tentangKami.videoThumbnail}
-                alt="Video ATV Kaliurang"
+                alt="Video Wisata Lava Tour Merapi"
                 fill
                 sizes="(max-width: 1024px) 100vw, 50vw"
                 className="object-cover group-hover:scale-105 transition-transform duration-500"
@@ -102,7 +102,7 @@ export default function TentangKamiSection() {
           onClick={() => setVideoOpen(false)}
           role="dialog"
           aria-modal="true"
-          aria-label="Video ATV Kaliurang"
+          aria-label="Video Wisata Lava Tour Merapi"
           className="fixed inset-0 z-50 bg-black/90 flex items-center justify-center p-4"
         >
           <div
@@ -120,7 +120,7 @@ export default function TentangKamiSection() {
             <iframe
               className="w-full h-full"
               src={toYoutubeEmbedUrl(SITE_ASSETS.tentangKami.videoUrl)}
-              title="Video ATV Kaliurang"
+              title="Video Wisata Lava Tour Merapi"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             />

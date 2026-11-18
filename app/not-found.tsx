@@ -15,7 +15,7 @@ export default function NotFound() {
           Jalur Offroad Tidak Tersedia
         </h2>
         <p className="text-gray-300 text-sm sm:text-base leading-relaxed">
-          Halaman yang Anda cari tidak ditemukan atau sudah dipindahkan. Kembali ke beranda untuk melihat paket dan booking ATV Kaliurang.
+          Halaman yang Anda cari tidak ditemukan atau sudah dipindahkan. Kembali ke beranda untuk melihat pilihan paket dan booking Jeep Lava Tour Merapi.
         </p>
 
         <div className="w-full flex flex-col sm:flex-row items-center justify-center gap-3 pt-2">

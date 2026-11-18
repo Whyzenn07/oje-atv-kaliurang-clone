@@ -193,7 +193,7 @@ export async function sendBookingNotification(
       </a>
     </div>
     <div class="footer">
-      <p>Email ini dikirim otomatis oleh sistem booking OJE ATV Kaliurang.</p>
+      <p>Email ini dikirim otomatis oleh sistem booking Wisata Lava Tour Merapi.</p>
       <p>Jangan balas email ini langsung — hubungi customer via WhatsApp.</p>
     </div>
   </div>
@@ -203,9 +203,9 @@ export async function sendBookingNotification(
 
   try {
     const { error } = await getResend().emails.send({
-      from: `OJE ATV Booking <${FROM_EMAIL}>`,
+      from: `Wisata Merapi Booking <${FROM_EMAIL}>`,
       to: [ADMIN_EMAIL],
-      subject: `[BOOKING BARU] ${oneLine(booking.nama)} — ${tanggalFormatted} — ${oneLine(booking.paket)}`,
+      subject: `[BOOKING JEEP] ${oneLine(booking.nama)} — ${tanggalFormatted} (${oneLine(booking.jam)}) — ${oneLine(booking.paket)}`,
       html,
     });
 

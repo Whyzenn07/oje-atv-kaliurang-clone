@@ -162,12 +162,8 @@ export async function POST(request: NextRequest) {
   const humanBookingCode = `WM-${cleanDate}-${randChars}`;
   const estimasiTotal = getPackageUnitPrice(data.paket) * data.jumlah;
 
-  const extraMeta = `[JAM: ${data.jam}] [PESERTA: ${data.jumlahPeserta} org] [KOTA: ${data.kotaAsal}]`;
-  const structuredCatatan = [extraMeta, data.catatan ? data.catatan : null]
-    .filter(Boolean)
-    .join(" - ");
-
   // Fallback format catatan apabila skema Supabase belum di-migrate ke kolom terpisah
+  const extraMeta = `[JAM: ${data.jam}] [PESERTA: ${data.jumlahPeserta} org] [KOTA: ${data.kotaAsal}]`;
   const combinedCatatan = [
     `[WA: ${data.whatsapp}] [KODE: ${humanBookingCode}]`,
     extraMeta,
@@ -183,25 +179,58 @@ export async function POST(request: NextRequest) {
         booking_code: humanBookingCode,
         nama: data.nama,
         whatsapp: data.whatsapp,
+        kota_asal: data.kotaAsal,
         paket: data.paket,
         tanggal: data.tanggal,
+        jam: data.jam,
         jumlah: data.jumlah,
+        jumlah_peserta: data.jumlahPeserta,
         estimasi_total: estimasiTotal,
-        catatan: structuredCatatan,
+        catatan: data.catatan || null,
         status: "PENDING",
         ip_address: ip,
       })
       .select()
       .single();
 
-    // Graceful fallback jika kolom baru (booking_code/whatsapp/estimasi_total) belum dimigrasi di DB
+    // Graceful fallback bertingkat jika sebagian kolom baru belum dimigrasi di Supabase
     if (
       dbError &&
       (dbError.code === "42703" ||
         dbError.code === "PGRST204" ||
         /column|schema cache/i.test(dbError.message || ""))
     ) {
-      console.warn("[API/booking] Schema fallback insert:", dbError.message);
+      console.warn("[API/booking] Schema fallback Tier-2 insert:", dbError.message);
+      const tier2Catatan = [extraMeta, data.catatan ? data.catatan : null]
+        .filter(Boolean)
+        .join(" - ");
+      const tier2Res = await supabase
+        .from("bookings")
+        .insert({
+          booking_code: humanBookingCode,
+          nama: data.nama,
+          whatsapp: data.whatsapp,
+          paket: data.paket,
+          tanggal: data.tanggal,
+          jumlah: data.jumlah,
+          estimasi_total: estimasiTotal,
+          catatan: tier2Catatan,
+          status: "PENDING",
+          ip_address: ip,
+        })
+        .select()
+        .single();
+      inserted = tier2Res.data;
+      dbError = tier2Res.error;
+    }
+
+    if (
+      dbError &&
+      (dbError.code === "42703" ||
+        dbError.code === "PGRST204" ||
+        /column|schema cache/i.test(dbError.message || ""))
+    ) {
+      console.warn("[API/booking] Schema fallback Tier-3 legacy insert:", dbError.message);
       const legacyRes = await supabase
         .from("bookings")
         .insert({
@@ -245,8 +274,8 @@ export async function POST(request: NextRequest) {
             success: false,
             error:
               remainingBefore > 0
-                ? `Slot ATV untuk tanggal tersebut tersisa ${remainingBefore} unit. Silakan kurangi unit atau pilih tanggal lain.`
-                : "Mohon maaf, kuota unit ATV untuk tanggal tersebut baru saja penuh. Silakan pilih tanggal lain.",
+                ? `Slot Jeep untuk tanggal tersebut tersisa ${remainingBefore} unit. Silakan kurangi jumlah Jeep atau pilih tanggal lain.`
+                : "Mohon maaf, kuota unit Jeep untuk tanggal tersebut baru saja penuh. Silakan pilih tanggal lain.",
           },
           { status: 409 }
         );

@@ -86,7 +86,7 @@ export default function Navbar() {
         >
           <Image
             src={SITE_ASSETS.logo}
-            alt="OJE ATV Kaliurang"
+            alt="Wisata Lava Tour Merapi"
             width={160}
             height={56}
             priority
@@ -124,7 +124,7 @@ export default function Navbar() {
           <a
             href={`tel:${CONTACT.PHONE_HREF}`}
             className="w-11 h-11 lg:w-12 lg:h-12 rounded-full bg-[#f6a440] hover:bg-[#e0912f] text-white flex items-center justify-center shadow-lg transition-transform hover:scale-110 shrink-0 call-pulse phone-ring-hover"
-            aria-label="Telepon OJE ATV Kaliurang"
+            aria-label="Telepon Wisata Lava Tour Merapi"
           >
             <Phone className="w-5 h-5 fill-white text-white transition-transform group-hover:rotate-12" />
           </a>
